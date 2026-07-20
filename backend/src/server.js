@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import AppDataSource from "./config/database.js";
+import playerRoutes from "./routes/playerRoutes.js";
 
 const app = express();
 
@@ -15,6 +16,8 @@ app.get("/api/health", (req, res) => {
     message: "Backend Physio.AI funcionando correctamente",
   });
 });
+
+app.use("/api/players", playerRoutes);
 
 // Init PostgreSQL, Server
 AppDataSource.initialize()
