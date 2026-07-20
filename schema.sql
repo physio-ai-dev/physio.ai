@@ -17,6 +17,7 @@ CREATE TABLE jugadores (
     equipo VARCHAR(150) NOT NULL,
     edad SMALLINT,
     posicion VARCHAR(50),
+    foto_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

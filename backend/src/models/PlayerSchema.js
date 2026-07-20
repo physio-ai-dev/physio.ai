@@ -30,6 +30,10 @@ const PlayerSchema = new EntitySchema({
       length: 50,
       nullable: true,
     },
+    foto_url: {
+      type: "text",
+      nullable: true,
+    },
     created_at: {
       type: "timestamp",
       default: () => "CURRENT_TIMESTAMP",
