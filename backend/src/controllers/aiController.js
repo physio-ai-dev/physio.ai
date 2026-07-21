@@ -1,50 +1,36 @@
-import AppDataSource from "../config/database.js";
-import { estimateInjuryRecovery } from "../services/geminiService.js";
+import { analyzeInjuryWithGemini } from "../services/geminiService.js";
+// Importa aquí tu repositorio o modelo de base de datos para registrar la auditoría si es necesario
 
 export const analyzeInjury = async (req, res) => {
-  try {
-    const { jugador_id, tipo_lesion, dias_estimados_club } = req.body;
+  const { jugador_id, tipo_lesion, dias_estimados_club } = req.body;
 
-    // Validación de campos requeridos
-    if (!jugador_id || !tipo_lesion) {
-      return res.status(400).json({
-        error: "Los campos 'jugador_id' y 'tipo_lesion' son obligatorios.",
-      });
+  try {
+    if (!jugador_id || !tipo_lesion || !dias_estimados_club) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "Faltan parámetros requeridos." });
     }
 
-    // 1. Obtener el análisis de Gemini
-    const aiAnalysis = await estimateInjuryRecovery({
-      injury: tipo_lesion,
-      diasEstimadosClub: dias_estimados_club,
-    });
+    // Ejecuta el servicio que acabamos de configurar
+    const resultadoIa = await analyzeInjuryWithGemini(
+      tipo_lesion,
+      dias_estimados_club,
+    );
 
-    // 2. Obtener el repositorio de la entidad 'Injury' / 'Lesion'
-    const injuryRepository = AppDataSource.getRepository("InjurySchema"); 
-
-    // 3. Crear el objeto para guardar en PostgreSQL
-    const nuevaLesion = injuryRepository.create({
+    // Armando la respuesta exacta que tu frontend mapea para la rúbrica
+    const respuestaFinal = {
       jugador_id,
       tipo_lesion,
-      dias_estimados_club: dias_estimados_club || null,
-      estimacion_ia: aiAnalysis.estimatedTimeText || `${aiAnalysis.estimatedDaysMin}-${aiAnalysis.estimatedDaysMax} días`,
-      resumen_medico: aiAnalysis.medicalSummary,
-      gravedad: aiAnalysis.severity,
-      fecha_registro: new Date(),
-    });
+      dias_estimados_club,
+      tiempo_clinico_ia: resultadoIa.tiempo_clinico_ia,
+      analisis_comparativo: resultadoIa.analisis_comparativo,
+    };
 
-    // 4. Guardar en la base de datos
-    const lesionGuardada = await injuryRepository.save(nuevaLesion);
+    // OPCIONAL: Guarda aquí en tu base de datos con TypeORM antes de responder
+    // await reporteRepository.save(respuestaFinal);
 
-    return res.status(201).json({
-      message: "Análisis procesado y guardado en la base de datos.",
-      lesion: lesionGuardada,
-      analisis_ia: aiAnalysis,
-    });
-
+    return res.status(200).json(respuestaFinal);
   } catch (error) {
-    console.error("Error en analyzeInjury:", error);
-    return res.status(500).json({
-      error: "Error interno del servidor al procesar el análisis.",
-    });
+    return res.status(500).json({ status: "error", message: error.message });
   }
 };
