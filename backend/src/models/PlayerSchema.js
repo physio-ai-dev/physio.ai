@@ -34,6 +34,16 @@ const PlayerSchema = new EntitySchema({
       type: "text",
       nullable: true,
     },
+    fecha_nacimiento: {
+      type: "varchar",
+      length: 50,
+      nullable: true,
+    },
+    liga: {
+      type: "varchar",
+      length: 100,
+      nullable: true,
+    },
     created_at: {
       type: "timestamp",
       default: () => "CURRENT_TIMESTAMP",

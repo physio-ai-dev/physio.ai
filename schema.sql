@@ -18,6 +18,8 @@ CREATE TABLE jugadores (
     edad SMALLINT,
     posicion VARCHAR(50),
     foto_url TEXT,
+    fecha_nacimiento VARCHAR(50),
+    liga VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -4,22 +4,33 @@ import "dotenv/config";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export const analyzeInjuryWithGemini = async (tipoLesion, diasClub) => {
-  const prompt = `Actúa como un médico especialista en medicina deportiva. 
-  Un futbolista sufre de la siguiente lesión: "${tipoLesion}". 
-  El club estima una recuperación de ${diasClub} días. 
-  Por favor responde strictly en formato JSON con la siguiente estructura:
-  {
-    "tiempo_clinico_ia": <número entero estimado de días de recuperación según literatura médica>,
-    "analisis_comparativo": "<explicación breve de 2 párrafos comparando el tiempo del club con el criterio clínico>"
-  }`;
+  const prompt = `Actúa como un médico especialista en medicina deportiva de alto rendimiento.
+  Un futbolista profesional ha sufrido la siguiente lesión: "${tipoLesion}".
+  El cuerpo médico del club estima un tiempo de recuperación de ${diasClub} días.
+  Compara esta estimación con la literatura médica científica y emite tu criterio clínico.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-3.5-flash",
     contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "OBJECT",
+        properties: {
+          tiempo_clinico_ia: {
+            type: "INTEGER",
+            description: "Número estimado de días de recuperación en promedio según literatura médica.",
+          },
+          analisis_comparativo: {
+            type: "STRING",
+            description: "Análisis comparativo estructurado en formato Markdown. Debe incluir obligatoriamente subtítulos usando '###' (ej: '### Análisis de la Estimación', '### Justificación Fisiológica', '### Criterios e Hitos para el Alta') y listas con viñetas ('-') para detallar hitos, recomendaciones o riesgos de recaída.",
+          },
+        },
+        required: ["tiempo_clinico_ia", "analisis_comparativo"],
+      },
+    },
   });
 
-  // Parsear la respuesta JSON de Gemini (SCRUM-36)
-  const text = response.text;
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  return JSON.parse(jsonMatch[0]);
+  // El SDK garantiza que response.text contiene un JSON perfectamente válido que cumple con el schema
+  return JSON.parse(response.text);
 };
