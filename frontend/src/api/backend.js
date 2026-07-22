@@ -1,32 +1,21 @@
 const BASE_URL = "http://localhost:4000/api";
 
 export const api = {
-  // 1. Buscar o registrar jugador
+  // 1. GET /api/players/search?name=...
   buscarJugador: async (nombre) => {
     const response = await fetch(
       `${BASE_URL}/players/search?name=${encodeURIComponent(nombre)}`,
     );
 
     if (!response.ok) {
-      throw new Error("Error en el servidor al buscar el futbolista.");
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al buscar el futbolista.");
     }
 
-    const data = await response.json();
-
-    // Si el backend responde con un array vacío o un objeto nulo
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-      throw new Error("No se encontró ningún futbolista con ese nombre.");
-    }
-
-    // Retornamos la data cruda. Si es un array, enviamos el primer elemento.
-    if (Array.isArray(data)) {
-      return data[0];
-    }
-
-    return data;
+    return response.json(); // Retorna el JSON crudo del backend
   },
 
-  // 2. Enviar la lesión a la IA
+  // 2. POST /api/ai/analyze
   analizarLesion: async (jugadorId, tipoLesion, diasClub) => {
     const response = await fetch(`${BASE_URL}/ai/analyze`, {
       method: "POST",
@@ -42,6 +31,7 @@ export const api = {
       throw new Error("Error al procesar el análisis con Gemini.");
     }
 
-    return response.json();
+    const data = await response.json();
+    return data.lesion;
   },
 };
