@@ -1,8 +1,60 @@
 import AppDataSource from "../config/database.js";
 import PlayerSchema from "../models/PlayerSchema.js";
 import InjurySchema from "../models/InjurySchema.js";
+import ClubSchema from "../models/ClubSchema.js";
+import PositionSchema from "../models/PositionSchema.js";
+import LeagueSchema from "../models/LeagueSchema.js";
 import { searchPlayerFromAPI } from "../services/footballApiService.js";
 import { analyzeInjuryWithGemini } from "../services/geminiService.js";
+import { ILike } from "typeorm";
+
+// Helper para resolver relaciones dinámicas basadas en nombres de texto plano
+async function resolveRelations(teamName, positionName, leagueName) {
+  const clubRepository = AppDataSource.getRepository(ClubSchema);
+  const positionRepository = AppDataSource.getRepository(PositionSchema);
+  const leagueRepository = AppDataSource.getRepository(LeagueSchema);
+
+  // 1. Resolver posición y mapear a los 4 permitidos por el CHECK constraint
+  let resolvedPositionName = "Defensa"; // Fallback por defecto
+  const pLower = (positionName || "").toLowerCase();
+  
+  if (pLower.includes("goalkeeper") || pLower.includes("arquero") || pLower.includes("portero")) {
+    resolvedPositionName = "Arquero";
+  } else if (pLower.includes("defender") || pLower.includes("defensa") || pLower.includes("central") || pLower.includes("lateral")) {
+    resolvedPositionName = "Defensa";
+  } else if (pLower.includes("midfielder") || pLower.includes("medio") || pLower.includes("volante") || pLower.includes("centrocampista")) {
+    resolvedPositionName = "Mediocampista";
+  } else if (pLower.includes("attacker") || pLower.includes("forward") || pLower.includes("delantero") || pLower.includes("extremo") || pLower.includes("punta")) {
+    resolvedPositionName = "Delantero";
+  }
+
+  let dbPosition = await positionRepository.findOne({ where: { nombre: resolvedPositionName } });
+  if (!dbPosition) {
+    dbPosition = await positionRepository.save(positionRepository.create({ nombre: resolvedPositionName }));
+  }
+
+  // 2. Resolver Liga
+  const resolvedLeagueName = leagueName || "Local / Otro";
+  let dbLeague = await leagueRepository.findOne({ where: { nombre: resolvedLeagueName } });
+  if (!dbLeague) {
+    dbLeague = await leagueRepository.save(leagueRepository.create({ nombre: resolvedLeagueName, pais: "Importado" }));
+  }
+
+  // 3. Resolver Club
+  const resolvedClubName = teamName || "Club Desconocido";
+  let dbClub = await clubRepository.findOne({ where: { nombre: resolvedClubName }, relations: ["liga"] });
+  if (!dbClub) {
+    dbClub = await clubRepository.save(clubRepository.create({
+      nombre: resolvedClubName,
+      liga: dbLeague,
+    }));
+  } else if (!dbClub.liga || dbClub.liga.id !== dbLeague.id) {
+    dbClub.liga = dbLeague;
+    await clubRepository.save(dbClub);
+  }
+
+  return { dbClub, dbPosition };
+}
 
 export const searchPlayer = async (req, res) => {
   try {
@@ -17,12 +69,13 @@ export const searchPlayer = async (req, res) => {
     const playerRepository = AppDataSource.getRepository(PlayerSchema);
     const injuryRepository = AppDataSource.getRepository(InjurySchema);
 
-    // 🚨 OPTIMIZACIÓN DE CUOTA: Buscar en la base de datos local primero (usando ILIKE para evitar sensibilidad a acentos/mayúsculas)
-    // Limpiamos acentos de la búsqueda local si es posible, pero ILIKE es la forma estándar.
+    // 🚨 OPTIMIZACIÓN: Buscar localmente primero
     const cleanSearchName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
-    // Consultamos por coincidencia parcial en nombre
     const localPlayers = await playerRepository.createQueryBuilder("player")
+      .leftJoinAndSelect("player.club", "club")
+      .leftJoinAndSelect("club.liga", "liga")
+      .leftJoinAndSelect("player.posicion", "posicion")
       .where("player.nombre ILIKE :name", { name: `%${cleanSearchName}%` })
       .getMany();
 
@@ -36,7 +89,6 @@ export const searchPlayer = async (req, res) => {
           order: { fecha_registro: "DESC" },
         });
 
-        // Si tiene lesiones, pero el reporte clínico es antiguo (sin títulos Markdown '###'), lo regeneramos
         const necesitaActualizar = lesiones.length > 0 && !lesiones[0].analisis_comparativo.includes("###");
 
         if (lesiones.length === 0 || necesitaActualizar) {
@@ -73,11 +125,13 @@ export const searchPlayer = async (req, res) => {
           id: player.id,
           api_id: player.api_id,
           nombre: player.nombre,
-          equipo: player.equipo,
-          edad: player.edad,
-          posicion: player.posicion,
+          equipo: player.club?.nombre || "Equipo Desconocido",
+          posicion: player.posicion?.nombre || "Sin Posición",
           foto_url: player.foto_url,
           fecha_nacimiento: player.fecha_nacimiento,
+          liga: player.club?.liga?.nombre || "Liga Desconocida",
+          estatura: player.estatura || "Sin estatura",
+          valor_mercado: player.valor_mercado || "No disponible",
           created_at: player.created_at,
           lesiones,
           reporte_ia: lesiones[0] || null,
@@ -110,18 +164,26 @@ export const searchPlayer = async (req, res) => {
 
       let player = await playerRepository.findOne({
         where: { api_id: apiPlayer.id },
+        relations: ["club", "club.liga", "posicion"],
       });
+
+      // Resolver relaciones estructuradas
+      const { dbClub, dbPosition } = await resolveRelations(
+        apiStats.team?.name,
+        apiStats.games?.position,
+        apiStats.league?.name
+      );
 
       if (!player) {
         player = playerRepository.create({
           api_id: apiPlayer.id,
           nombre: apiPlayer.name,
-          equipo: apiStats.team?.name || "Equipo Desconocido",
-          edad: apiPlayer.age || null,
-          posicion: apiStats.games?.position || "Sin Posición",
+          club: dbClub,
+          posicion: dbPosition,
           foto_url: apiPlayer.photo || null,
           fecha_nacimiento: apiPlayer.birth?.date || null,
-          liga: apiStats.league?.name || "Liga Desconocida",
+          estatura: apiPlayer.height || "Sin estatura",
+          valor_mercado: "No disponible",
         });
 
         await playerRepository.save(player);
@@ -135,8 +197,20 @@ export const searchPlayer = async (req, res) => {
           player.fecha_nacimiento = apiPlayer.birth.date;
           updated = true;
         }
-        if (apiStats.league?.name && !player.liga) {
-          player.liga = apiStats.league.name;
+        if (dbClub && (!player.club || player.club.id !== dbClub.id)) {
+          player.club = dbClub;
+          updated = true;
+        }
+        if (dbPosition && (!player.posicion || player.posicion.id !== dbPosition.id)) {
+          player.posicion = dbPosition;
+          updated = true;
+        }
+        if (apiPlayer.height && !player.estatura) {
+          player.estatura = apiPlayer.height;
+          updated = true;
+        }
+        if (!player.valor_mercado) {
+          player.valor_mercado = "No disponible";
           updated = true;
         }
         if (updated) {
@@ -178,11 +252,13 @@ export const searchPlayer = async (req, res) => {
         id: player.id,
         api_id: player.api_id,
         nombre: player.nombre,
-        equipo: player.equipo,
-        edad: player.edad,
-        posicion: player.posicion,
+        equipo: player.club?.nombre || "Equipo Desconocido",
+        posicion: player.posicion?.nombre || "Sin Posición",
         foto_url: player.foto_url,
         fecha_nacimiento: player.fecha_nacimiento,
+        liga: player.club?.liga?.nombre || "Liga Desconocida",
+        estatura: player.estatura || "Sin estatura",
+        valor_mercado: player.valor_mercado || "No disponible",
         created_at: player.created_at,
         lesiones,
         reporte_ia: lesiones[0] || null,
