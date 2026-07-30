@@ -1,4 +1,5 @@
 import { useState } from "react";
+import LandingPage from './components/LandingPage';
 import { api } from "./api/backend";
 import {
   ThemeProvider,
@@ -272,6 +273,7 @@ const calculateAge = (birthdateStr) => {
 };
 
 function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
   const [jugador, setJugador] = useState(null);
@@ -332,6 +334,10 @@ function App() {
   const edadCalculada = jugador?.fecha_nacimiento
     ? calculateAge(jugador.fecha_nacimiento)
     : jugador?.edad;
+
+  if (showLanding) {
+    return <LandingPage onStart={() => setShowLanding(false)} />;
+  }
 
   return (
     <ThemeProvider theme={darkTheme}>
