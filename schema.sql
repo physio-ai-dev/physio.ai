@@ -8,22 +8,46 @@
 
 DROP TABLE IF EXISTS lesiones CASCADE;
 DROP TABLE IF EXISTS jugadores CASCADE;
+DROP TABLE IF EXISTS clubes CASCADE;
+DROP TABLE IF EXISTS posiciones CASCADE;
+DROP TABLE IF EXISTS ligas CASCADE;
 
--- JUGADORES
+-- 1. POSICIONES (con CHECK constraint para restringir a los roles definidos)
+CREATE TABLE posiciones (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50) NOT NULL UNIQUE,
+    CONSTRAINT chk_posicion_nombre CHECK (nombre IN ('Arquero', 'Defensa', 'Mediocampista', 'Delantero'))
+);
+
+-- 2. LIGAS
+CREATE TABLE ligas (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    pais VARCHAR(100)
+);
+
+-- 3. CLUBES
+CREATE TABLE clubes (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    liga_fk INTEGER REFERENCES ligas(id) ON DELETE SET NULL
+);
+
+-- 4. JUGADORES
 CREATE TABLE jugadores (
     id SERIAL PRIMARY KEY,
-    api_id INTEGER UNIQUE NOT NULL,      -- El ID que provee la API de fútbol para evitar duplicados
+    api_id INTEGER UNIQUE,      -- El ID que provee la API de fútbol para evitar duplicados (opcional para local)
     nombre VARCHAR(150) NOT NULL,
-    equipo VARCHAR(150) NOT NULL,
-    edad SMALLINT,
-    posicion VARCHAR(50),
+    club_fk INTEGER REFERENCES clubes(id) ON DELETE SET NULL,
+    posicion_fk INTEGER REFERENCES posiciones(id) ON DELETE SET NULL,
     foto_url TEXT,
     fecha_nacimiento VARCHAR(50),
-    liga VARCHAR(100),
+    estatura VARCHAR(50),
+    valor_mercado VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- LESIONES
+-- 5. LESIONES
 CREATE TABLE lesiones (
     id SERIAL PRIMARY KEY,
     jugador_id INTEGER NOT NULL,
@@ -41,6 +65,23 @@ CREATE TABLE lesiones (
         ON DELETE CASCADE
 );
 
--- ÍNDICES DE RENDIMIENTO
+-- ÍNDICES DE RENDIMIENTO Y RELACIONES
 CREATE INDEX idx_jugadores_api_id ON jugadores(api_id);
 CREATE INDEX idx_lesiones_jugador_id ON lesiones(jugador_id);
+CREATE INDEX idx_jugadores_club_fk ON jugadores(club_fk);
+CREATE INDEX idx_clubes_liga_fk ON clubes(liga_fk);
+
+-- Semilla de Posiciones por Defecto
+INSERT INTO posiciones (nombre) VALUES 
+('Arquero'),
+('Defensa'),
+('Mediocampista'),
+('Delantero');
+
+-- Semilla de Ligas Top por Defecto
+INSERT INTO ligas (nombre, pais) VALUES 
+('Premier League', 'Inglaterra'),
+('LaLiga', 'España'),
+('Serie A', 'Italia'),
+('Bundesliga', 'Alemania'),
+('Ligue 1', 'Francia');

@@ -2,6 +2,9 @@ import { DataSource } from "typeorm";
 import "dotenv/config";
 import PlayerSchema from "../models/PlayerSchema.js";
 import InjurySchema from "../models/InjurySchema.js";
+import LeagueSchema from "../models/LeagueSchema.js";
+import ClubSchema from "../models/ClubSchema.js";
+import PositionSchema from "../models/PositionSchema.js";
 
 const AppDataSource = new DataSource({
   type: "postgres",
@@ -12,7 +15,7 @@ const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false,
   logging: process.env.NODE_ENV === "development",
-  entities: [PlayerSchema, InjurySchema],
+  entities: [PlayerSchema, InjurySchema, LeagueSchema, ClubSchema, PositionSchema],
 });
 
 export default AppDataSource;
