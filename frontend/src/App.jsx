@@ -1,42 +1,12 @@
 import { useState } from "react";
-import LandingPage from './components/LandingPage';
 import { api } from "./api/backend";
-import {
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  Avatar,
-  Grid,
-  Alert,
-  CircularProgress,
-  AppBar,
-  Toolbar,
-  Divider,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  ListItemButton,
-  Paper,
-} from "@mui/material";
-import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
-import {
-  Search as SearchIcon,
-  AccessTime as ClockIcon,
-  Psychology as BrainIcon,
-  WarningAmber as ShieldAlertIcon,
-  InfoOutlined as InfoIcon,
-  EventNote as EventIcon,
-  Person as PersonIcon,
-  ArrowBack as ArrowBackIcon,
-} from "@mui/icons-material";
+import { ThemeProvider, createTheme, CssBaseline, Container, Box, Typography, Divider } from "@mui/material";
+import Header from "./components/Header";
+import Disclaimer from "./components/Disclaimer";
+import SearchForm from "./components/SearchForm";
+import ResultPanel from "./components/ResultPanel";
+import CreatePlayerPage from "./components/CreatePlayerPage";
+import LandingPage from "./components/LandingPage";
 
 // Configuración de un tema oscuro de alta gama (Premium Dark Mode)
 const darkTheme = createTheme({
@@ -112,8 +82,11 @@ const darkTheme = createTheme({
 const renderLegibleReport = (text) => {
   if (!text) return null;
 
+  // Reemplazar saltos de línea escapados (\\n) por saltos reales (\n) por si vienen como texto plano
+  const cleanText = text.replace(/\\n/g, "\n");
+
   // Dividir el texto en líneas y procesar de forma inteligente para mejorar el diseño
-  const lines = text.split("\n");
+  const lines = cleanText.split("\n");
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -164,7 +137,7 @@ const renderLegibleReport = (text) => {
                   i % 2 === 1 ? (
                     <strong
                       key={i}
-                      style={{ color: "#34d399", fontWeight: 700 }}
+                      style={{ fontWeight: 800 }}
                     >
                       {part}
                     </strong>
@@ -227,7 +200,7 @@ const renderLegibleReport = (text) => {
           >
             {parts.map((part, i) =>
               i % 2 === 1 ? (
-                <strong key={i} style={{ color: "#34d399", fontWeight: 700 }}>
+                <strong key={i} style={{ fontWeight: 800 }}>
                   {part}
                 </strong>
               ) : (
@@ -274,12 +247,17 @@ const calculateAge = (birthdateStr) => {
 
 function App() {
   const [showLanding, setShowLanding] = useState(true);
+  const [page, setPage] = useState("search"); // "search" | "create"
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
   const [jugador, setJugador] = useState(null);
   const [resultadoFinal, setResultadoFinal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  if (showLanding) {
+    return <LandingPage onStart={() => setShowLanding(false)} />;
+  }
 
   const handleBuscarYAnalizar = async (e) => {
     e.preventDefault();
@@ -325,6 +303,8 @@ function App() {
       foto: datosCompletos.foto_url,
       edad: datosCompletos.edad,
       fecha_nacimiento: datosCompletos.fecha_nacimiento,
+      estatura: datosCompletos.estatura,
+      valor_mercado: datosCompletos.valor_mercado,
     });
     setResultadoFinal(datosCompletos.reporte_ia);
     setListaCoincidencias([]);
@@ -334,10 +314,6 @@ function App() {
   const edadCalculada = jugador?.fecha_nacimiento
     ? calculateAge(jugador.fecha_nacimiento)
     : jugador?.edad;
-
-  if (showLanding) {
-    return <LandingPage onStart={() => setShowLanding(false)} />;
-  }
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -351,55 +327,7 @@ function App() {
         }}
       >
         {/* Navbar */}
-        <AppBar
-          position="static"
-          color="transparent"
-          elevation={0}
-          sx={{
-            borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-            bgcolor: "rgba(11, 21, 40, 0.5)",
-            backdropFilter: "blur(16px)",
-          }}
-        >
-          <Toolbar>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.5,
-                flexGrow: 1,
-              }}
-            >
-              <MedicalServicesIcon
-                color="primary"
-                sx={{ fontSize: 26, filter: "drop-shadow(0 0 8px #10b98160)" }}
-              />
-              <Typography
-                variant="h6"
-                component="div"
-                sx={{
-                  fontWeight: 900,
-                  letterSpacing: 1.5,
-                  background: "linear-gradient(90deg, #10b981, #34d399)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Physio.AI
-              </Typography>
-            </Box>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "text.secondary",
-                fontWeight: 600,
-                letterSpacing: 0.5,
-              }}
-            >
-              Football Injury Companion
-            </Typography>
-          </Toolbar>
-        </AppBar>
+        <Header onLogoClick={() => setPage("search")} />
 
         {/* Contenido Principal */}
         <Container
@@ -412,514 +340,45 @@ function App() {
             gap: 4,
           }}
         >
-          {/* Cabecera / Propósito de la App */}
-          <Box sx={{ textAlign: "center" }}>
-            <Typography
-              variant="h3"
-              component="h1"
-              sx={{ fontWeight: 900, mb: 1.5, letterSpacing: "-1px" }}
-            >
-              Buscador Clínico de Lesiones
-            </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              sx={{
-                maxWidth: "600px",
-                mx: "auto",
-                fontSize: "1.05rem",
-                lineHeight: 1.6,
-              }}
-            >
-              Evalúa y compara el tiempo de baja estimado por los clubes frente
-              al criterio clínico de la literatura médica generado mediante
-              Inteligencia Artificial.
-            </Typography>
-          </Box>
-
-          {/* PANEL DE INFORMACIÓN Y DISCLAIMER */}
-          <Card
-            variant="outlined"
-            sx={{
-              bgcolor: "rgba(30, 41, 59, 0.2)",
-              borderColor: "rgba(255, 255, 255, 0.04)",
-            }}
-          >
-            <CardContent
-              sx={{ display: "flex", flexDirection: "column", gap: 2, p: 3 }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  color: "primary.light",
-                }}
-              >
-                <InfoIcon fontSize="small" />
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 800, letterSpacing: 0.5 }}
-                >
-                  PROPÓSITO DEL PROGRAMA Y ADVERTENCIA CLÍNICA
-                </Typography>
-              </Box>
-
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ lineHeight: 1.6 }}
-              >
-                Esta plataforma tiene como objetivo contrastar de manera
-                informativa los plazos de recuperación oficiales provistos por
-                los clubes de fútbol con la literatura médica generalizada. Los
-                cuerpos médicos de cada club cuentan con información
-                privilegiada de la cual la IA carece.
-              </Typography>
-
-              <Box
-                sx={{
-                  p: 2,
-                  bgcolor: "rgba(245, 158, 11, 0.05)",
-                  border: "1px solid rgba(245, 158, 11, 0.15)",
-                  borderRadius: 3,
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 1.5,
-                }}
-              >
-                <ShieldAlertIcon color="warning" sx={{ mt: 0.2 }} />
-                <Box>
-                  <Typography
-                    variant="caption"
-                    color="warning.main"
-                    sx={{ fontWeight: "bold", display: "block", mb: 0.5 }}
-                  >
-                    DISCLAIMER
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ display: "block", lineHeight: 1.5 }}
-                  >
-                    La API de Gemini cuenta con una fecha límite de
-                    entrenamiento y no está actualizada con el estado de salud
-                    actual de los jugadores. Las estimaciones de la IA son
-                    basadas en literatura científica estándar y no constituyen
-                    consejo médico profesional.
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {/* Formulario de Búsqueda */}
-          <Box
-            component="form"
-            onSubmit={handleBuscarYAnalizar}
-            sx={{
-              display: "flex",
-              gap: 2,
-              maxWidth: "600px",
-              width: "100%",
-              mx: "auto",
-            }}
-          >
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Busca un futbolista (Ej. Lamine Yamal, Kylian Mbappe)..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
-                ),
+          {page === "create" ? (
+            /* Vista 1: Formulario de Alta Local */
+            <CreatePlayerPage onGoBack={() => setPage("search")} />
+          ) : resultadoFinal ? (
+            /* Vista 2: PANEL DE RESULTADOS AUTOMÁTICO */
+            <ResultPanel
+              resultadoFinal={resultadoFinal}
+              jugador={jugador}
+              edadCalculada={edadCalculada}
+              listaCoincidencias={listaCoincidencias}
+              formatBirthdate={formatBirthdate}
+              renderLegibleReport={renderLegibleReport}
+              onBackToMatches={() => setJugador(null)}
+              onReset={() => {
+                setJugador(null);
+                setResultadoFinal(null);
+                setBusqueda("");
+                setListaCoincidencias([]);
               }}
             />
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={loading}
-              sx={{ px: 4 }}
-            >
-              {loading ? "Procesando..." : "Buscar"}
-            </Button>
-          </Box>
+          ) : (
+            /* Vista 3: Formulario de Búsqueda y Resultados */
+            <>
+              {/* Cabecera / Propósito de la App */}
+              <Disclaimer />
 
-          {/* Loading Animation */}
-          {loading && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 2,
-                my: 6,
-              }}
-            >
-              <CircularProgress color="primary" size={50} />
-              <Typography
-                variant="caption"
-                color="primary"
-                sx={{ fontWeight: 700 }}
-              >
-                Consultando base de datos y solicitando criterio médico a
-                Gemini...
-              </Typography>
-            </Box>
-          )}
-
-          {/* Mensajes de Error */}
-          {error && (
-            <Alert
-              severity="error"
-              variant="outlined"
-              sx={{
-                maxWidth: "600px",
-                width: "100%",
-                mx: "auto",
-                borderRadius: 3,
-              }}
-            >
-              {error}
-            </Alert>
-          )}
-
-          {/* SELECCIÓN DE COINCIDENCIAS (NOMBRE COMÚN) */}
-          {listaCoincidencias.length > 1 && !jugador && !loading && (
-            <Paper
-              variant="outlined"
-              sx={{
-                p: 3,
-                borderRadius: 4,
-                maxWidth: "600px",
-                width: "100%",
-                mx: "auto",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                bgcolor: "rgba(11, 21, 40, 0.3)",
-              }}
-            >
-              <Typography
-                variant="subtitle2"
-                sx={{ mb: 2, fontWeight: "bold", color: "primary.light" }}
-              >
-                🔍 Se encontraron {listaCoincidencias.length} futbolistas con
-                ese nombre. Selecciona el correcto:
-              </Typography>
-              <List>
-                {listaCoincidencias.map((player) => (
-                  <ListItem disablePadding key={player.id} sx={{ mb: 1.5 }}>
-                    <ListItemButton
-                      onClick={() => seleccionarJugador(player)}
-                      sx={{
-                        borderRadius: 3,
-                        border: "1px solid rgba(255, 255, 255, 0.05)",
-                        bgcolor: "rgba(3, 7, 18, 0.4)",
-                        "&:hover": { bgcolor: "rgba(16, 185, 129, 0.05)" },
-                      }}
-                    >
-                      <ListItemAvatar>
-                        <Avatar src={player.foto_url}>
-                          <PersonIcon />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={player.nombre}
-                        secondary={`${player.equipo} • ${player.posicion || "Fútbol profesional"}`}
-                        primaryTypographyProps={{
-                          fontWeight: 800,
-                          fontSize: "0.95rem",
-                        }}
-                        secondaryTypographyProps={{
-                          fontSize: "0.85rem",
-                          color: "text.secondary",
-                        }}
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          )}
-
-          {/* PANEL DE RESULTADOS AUTOMÁTICO */}
-          {resultadoFinal && !loading && (
-            <Card variant="outlined">
-              <CardContent
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 4,
-                  p: { xs: 3, sm: 5 },
-                }}
-              >
-                {/* Cabecera del Perfil Encontrado con Edad y Fecha de Nacimiento limpia */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
-                  <Avatar
-                    src={jugador?.foto}
-                    sx={{
-                      width: 72,
-                      height: 72,
-                      border: "2px solid #10b981",
-                      boxShadow: "0 0 15px rgba(16, 185, 129, 0.3)",
-                    }}
-                  />
-                  <Box>
-                    <Typography
-                      variant="h5"
-                      sx={{ fontWeight: 900, letterSpacing: "-0.5px" }}
-                    >
-                      {jugador?.nombre}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        textTransform: "uppercase",
-                        fontWeight: 700,
-                        letterSpacing: 0.5,
-                      }}
-                    >
-                      {jugador?.equipo}{" "}
-                      {edadCalculada ? `• ${edadCalculada} años` : ""}{" "}
-                      {jugador?.fecha_nacimiento
-                        ? `• ${formatBirthdate(jugador.fecha_nacimiento)}`
-                        : ""}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.08)" }} />
-
-                {/* Grid comparativa en formato 2x2 */}
-                <Grid container spacing={3}>
-                  {/* FILA 1: LESIÓN Y FECHA */}
-
-                  {/* Lesión Detectada */}
-                  <Grid item xs={12} sm={6}>
-                    <Box
-                      sx={{
-                        bgcolor: "rgba(244, 63, 94, 0.05)",
-                        border: "1px solid rgba(244, 63, 94, 0.15)",
-                        p: 2.5,
-                        borderRadius: 4,
-                        height: "100%",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          color: "#f43f5e",
-                          mb: 1,
-                        }}
-                      >
-                        <ShieldAlertIcon fontSize="small" />
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 800, letterSpacing: 0.5 }}
-                        >
-                          LESIÓN DETECTADA
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="body1"
-                        sx={{ fontWeight: 800, textTransform: "capitalize" }}
-                      >
-                        {resultadoFinal.tipo_lesion}
-                      </Typography>
-                    </Box>
-                  </Grid>
-
-                  {/* Fecha de Lesión */}
-                  <Grid item xs={12} sm={6}>
-                    <Box
-                      sx={{
-                        bgcolor: "rgba(56, 189, 248, 0.05)",
-                        border: "1px solid rgba(56, 189, 248, 0.15)",
-                        p: 2.5,
-                        borderRadius: 4,
-                        height: "100%",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          color: "#38bdf8",
-                          mb: 1,
-                        }}
-                      >
-                        <EventIcon fontSize="small" />
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 800, letterSpacing: 0.5 }}
-                        >
-                          FECHA DE LESIÓN
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 800, color: "#38bdf8" }}
-                      >
-                        {resultadoFinal.fecha_registro
-                          ? new Date(
-                              resultadoFinal.fecha_registro,
-                            ).toLocaleDateString("es-ES")
-                          : "N/D"}
-                      </Typography>
-                    </Box>
-                  </Grid>
-
-                  {/* FILA 2: ESTIMACIÓN CLUB Y ESTIMACIÓN IA */}
-
-                  {/* Reporte Días Club */}
-                  <Grid item xs={12} sm={6}>
-                    <Box
-                      sx={{
-                        bgcolor: "rgba(245, 158, 11, 0.05)",
-                        border: "1px solid rgba(245, 158, 11, 0.15)",
-                        p: 2.5,
-                        borderRadius: 4,
-                        height: "100%",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          color: "#f59e0b",
-                          mb: 1,
-                        }}
-                      >
-                        <ClockIcon fontSize="small" />
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 800, letterSpacing: 0.5 }}
-                        >
-                          ESTIMACIÓN CLUB
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 800, color: "#fbbf24" }}
-                      >
-                        {resultadoFinal.dias_estimados_club} días
-                      </Typography>
-                    </Box>
-                  </Grid>
-
-                  {/* Promedio IA Gemini */}
-                  <Grid item xs={12} sm={6}>
-                    <Box
-                      sx={{
-                        bgcolor: "rgba(16, 185, 129, 0.05)",
-                        border: "1px solid rgba(16, 185, 129, 0.15)",
-                        p: 2.5,
-                        borderRadius: 4,
-                        height: "100%",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          color: "#10b981",
-                          mb: 1,
-                        }}
-                      >
-                        <BrainIcon fontSize="small" />
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 800, letterSpacing: 0.5 }}
-                        >
-                          CRITERIO CLÍNICO IA
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 800, color: "#34d399" }}
-                      >
-                        {resultadoFinal.tiempo_clinico_ia || "N/D"} días
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-
-                {/* Dictamen Clínico de la IA */}
-                <Box
-                  sx={{
-                    bgcolor: "rgba(2, 6, 23, 0.5)",
-                    border: "1px solid rgba(255, 255, 255, 0.05)",
-                    p: 4,
-                    borderRadius: 4,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                      mb: 2,
-                    }}
-                  >
-                    <BrainIcon
-                      color="primary"
-                      sx={{ filter: "drop-shadow(0 0 4px #10b98140)" }}
-                    />
-                    <Typography
-                      variant="subtitle2"
-                      sx={{
-                        fontWeight: 800,
-                        color: "primary.light",
-                        letterSpacing: 0.5,
-                      }}
-                    >
-                      DICTAMEN CLÍNICO COMPARATIVO (GEMINI)
-                    </Typography>
-                  </Box>
-
-                  {/* Renderizado de Dictamen Estructurado y Altamente Legible */}
-                  <Box>
-                    {renderLegibleReport(resultadoFinal.analisis_comparativo)}
-                  </Box>
-                </Box>
-
-                {/* Botón de volver a buscar / volver a la lista */}
-                <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
-                  {listaCoincidencias.length > 0 && (
-                    <Button
-                      startIcon={<ArrowBackIcon />}
-                      onClick={() => setJugador(null)}
-                      sx={{ color: "text.secondary", fontSize: "0.9rem" }}
-                    >
-                      Volver a coincidencias
-                    </Button>
-                  )}
-                  <Button
-                    onClick={() => {
-                      setJugador(null);
-                      setResultadoFinal(null);
-                      setBusqueda("");
-                      setListaCoincidencias([]);
-                    }}
-                    sx={{
-                      color: "text.secondary",
-                      textDecoration: "underline",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    Buscar otro futbolista
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+              {/* Formulario de Búsqueda y Resultados */}
+              <SearchForm
+                busqueda={busqueda}
+                setBusqueda={setBusqueda}
+                loading={loading}
+                error={error}
+                listaCoincidencias={listaCoincidencias}
+                jugador={jugador}
+                onSubmit={handleBuscarYAnalizar}
+                onSelectPlayer={seleccionarJugador}
+                onNavigateToCreate={() => setPage("create")}
+              />
+            </>
           )}
         </Container>
       </Box>

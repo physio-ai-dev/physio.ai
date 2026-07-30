@@ -34,4 +34,51 @@ export const api = {
     const data = await response.json();
     return data.lesion;
   },
+
+  // 3. GET /api/players/leagues (Obtener catálogo de ligas)
+  obtenerLigas: async () => {
+    const response = await fetch(`${BASE_URL}/players/leagues`);
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener las ligas.");
+    }
+    return response.json();
+  },
+
+  // 4. POST /api/players (Crear futbolista local)
+  crearJugadorLocal: async (datos) => {
+    const response = await fetch(`${BASE_URL}/players`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datos),
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al registrar el futbolista.");
+    }
+    return response.json();
+  },
+
+  // 5. GET /api/players/positions (Obtener catálogo de posiciones)
+  obtenerPosiciones: async () => {
+    const response = await fetch(`${BASE_URL}/players/positions`);
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener las posiciones.");
+    }
+    return response.json();
+  },
+
+  // 6. GET /api/players/clubs (Obtener catálogo de clubes, opcionalmente filtrados por liga)
+  obtenerClubes: async (ligaNombre) => {
+    const url = ligaNombre
+      ? `${BASE_URL}/players/clubs?leagueName=${encodeURIComponent(ligaNombre)}`
+      : `${BASE_URL}/players/clubs`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener los clubes.");
+    }
+    return response.json();
+  },
 };

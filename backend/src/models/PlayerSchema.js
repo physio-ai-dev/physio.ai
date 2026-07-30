@@ -12,23 +12,11 @@ const PlayerSchema = new EntitySchema({
     api_id: {
       type: "int",
       unique: true,
+      nullable: true,
     },
     nombre: {
       type: "varchar",
       length: 150,
-    },
-    equipo: {
-      type: "varchar",
-      length: 150,
-    },
-    edad: {
-      type: "smallint",
-      nullable: true,
-    },
-    posicion: {
-      type: "varchar",
-      length: 50,
-      nullable: true,
     },
     foto_url: {
       type: "text",
@@ -39,7 +27,12 @@ const PlayerSchema = new EntitySchema({
       length: 50,
       nullable: true,
     },
-    liga: {
+    estatura: {
+      type: "varchar",
+      length: 50,
+      nullable: true,
+    },
+    valor_mercado: {
       type: "varchar",
       length: 100,
       nullable: true,
@@ -47,6 +40,20 @@ const PlayerSchema = new EntitySchema({
     created_at: {
       type: "timestamp",
       default: () => "CURRENT_TIMESTAMP",
+    },
+  },
+  relations: {
+    club: {
+      target: "Club",
+      type: "many-to-one",
+      joinColumn: { name: "club_fk" },
+      nullable: true,
+    },
+    posicion: {
+      target: "Posicion",
+      type: "many-to-one",
+      joinColumn: { name: "posicion_fk" },
+      nullable: true,
     },
   },
 });
