@@ -6,6 +6,7 @@ import Disclaimer from "./components/Disclaimer";
 import SearchForm from "./components/SearchForm";
 import ResultPanel from "./components/ResultPanel";
 import CreatePlayerPage from "./components/CreatePlayerPage";
+import LandingPage from "./components/LandingPage";
 
 // Configuración de un tema oscuro de alta gama (Premium Dark Mode)
 const darkTheme = createTheme({
@@ -245,6 +246,7 @@ const calculateAge = (birthdateStr) => {
 };
 
 function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const [page, setPage] = useState("search"); // "search" | "create"
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
@@ -252,6 +254,10 @@ function App() {
   const [resultadoFinal, setResultadoFinal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  if (showLanding) {
+    return <LandingPage onStart={() => setShowLanding(false)} />;
+  }
 
   const handleBuscarYAnalizar = async (e) => {
     e.preventDefault();
