@@ -360,3 +360,38 @@ export const deletePlayer = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+// 6. Obtener reporte consolidado de lesiones desde la vista (SCRUM-53)
+export const getInjuryReportSummary = async (req, res) => {
+  try {
+    const summary = await AppDataSource.query(`SELECT * FROM vista_resumen_lesiones;`);
+    return res.json({
+      status: "success",
+      data: summary,
+    });
+  } catch (error) {
+    console.error("Error al obtener reporte consolidado:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// 7. Calcular edad de un jugador usando la UDF de PostgreSQL (SCRUM-53)
+export const getPlayerAge = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await AppDataSource.query(
+      `SELECT calcular_edad(fecha_nacimiento) AS edad FROM jugadores WHERE id = $1;`,
+      [parseInt(id, 10)]
+    );
+    if (result.length === 0) {
+      return res.status(404).json({ error: "Futbolista no encontrado." });
+    }
+    return res.json({
+      status: "success",
+      edad: result[0].edad,
+    });
+  } catch (error) {
+    console.error("Error al obtener edad del futbolista:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
