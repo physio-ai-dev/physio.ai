@@ -85,3 +85,45 @@ INSERT INTO ligas (nombre, pais) VALUES
 ('Serie A', 'Italia'),
 ('Bundesliga', 'Alemania'),
 ('Ligue 1', 'Francia');
+
+-- ==========================================
+-- UDF: Función para calcular edad (SCRUM-52)
+-- ==========================================
+CREATE OR REPLACE FUNCTION calcular_edad(fecha_nacimiento VARCHAR)
+RETURNS INTEGER AS $$
+DECLARE
+    fecha_date DATE;
+    edad INTEGER;
+BEGIN
+    IF fecha_nacimiento IS NULL OR fecha_nacimiento = '' THEN
+        RETURN NULL;
+    END IF;
+    
+    BEGIN
+        fecha_date := fecha_nacimiento::DATE;
+    EXCEPTION WHEN OTHERS THEN
+        RETURN NULL;
+    END;
+    
+    edad := DATE_PART('year', AGE(CURRENT_DATE, fecha_date));
+    RETURN edad;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ==========================================
+-- VISTA CONSOLIDADA DE LESIONES (SCRUM-51)
+-- ==========================================
+CREATE OR REPLACE VIEW vista_resumen_lesiones AS
+SELECT 
+    TO_CHAR(l.fecha_registro, 'YYYY-MM') AS mes,
+    c.nombre AS club,
+    p.nombre AS posicion,
+    COUNT(l.id) AS total_lesiones,
+    SUM(l.dias_estimados_club) AS total_dias_club,
+    SUM(l.tiempo_clinico_ia) AS total_dias_ia
+FROM lesiones l
+JOIN jugadores j ON l.jugador_id = j.id
+LEFT JOIN clubes c ON j.club_fk = c.id
+LEFT JOIN posiciones p ON j.posicion_fk = p.id
+GROUP BY TO_CHAR(l.fecha_registro, 'YYYY-MM'), c.nombre, p.nombre
+ORDER BY mes DESC, total_lesiones DESC;

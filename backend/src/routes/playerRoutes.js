@@ -9,6 +9,8 @@ import {
   getLeagues,
   getPositions,
   getClubs,
+  getInjuryReportSummary,
+  getPlayerAge,
 } from "../controllers/playerCrudController.js";
 
 const router = Router();
@@ -24,6 +26,10 @@ router.get("/positions", getPositions);
 
 // Catálogo de Clubes (para filtrado dinámico)
 router.get("/clubs", getClubs);
+
+// Reportes Consolidados (SCRUM-53)
+router.get("/reports/summary", getInjuryReportSummary);
+router.get("/:id/age", getPlayerAge);
 
 // Rutas de CRUD Local de futbolistas (SCRUM-44)
 router.post("/", createPlayer);
