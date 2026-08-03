@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { api } from "./api/backend";
 import { ThemeProvider, createTheme, CssBaseline, Container, Box, Typography, Divider } from "@mui/material";
 import Header from "./components/Header";
@@ -7,6 +8,7 @@ import SearchForm from "./components/SearchForm";
 import ResultPanel from "./components/ResultPanel";
 import CreatePlayerPage from "./components/CreatePlayerPage";
 import LandingPage from "./components/LandingPage";
+import MainLayout from "./components/layout/MainLayout";
 
 // Configuración de un tema oscuro de alta gama (Premium Dark Mode)
 const darkTheme = createTheme({
