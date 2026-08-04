@@ -395,3 +395,35 @@ export const getPlayerAge = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+// 8. Obtener logs de auditoría (SCRUM-46)
+export const getAuditLogs = async (req, res) => {
+  try {
+    const logs = await AppDataSource.query(
+      "SELECT * FROM auditoria_datos ORDER BY fecha_evento DESC LIMIT 100;"
+    );
+    return res.json({
+      status: "success",
+      data: logs,
+    });
+  } catch (error) {
+    console.error("Error al obtener logs de auditoría:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// 9. Obtener top jugadores más buscados (SCRUM-46)
+export const getTopSearched = async (req, res) => {
+  try {
+    const top = await AppDataSource.query(
+      "SELECT * FROM top_jugadores_buscados ORDER BY cantidad_busquedas DESC LIMIT 10;"
+    );
+    return res.json({
+      status: "success",
+      data: top,
+    });
+  } catch (error) {
+    console.error("Error al obtener top búsquedas:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};

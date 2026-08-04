@@ -127,3 +127,107 @@ LEFT JOIN clubes c ON j.club_fk = c.id
 LEFT JOIN posiciones p ON j.posicion_fk = p.id
 GROUP BY TO_CHAR(l.fecha_registro, 'YYYY-MM'), c.nombre, p.nombre
 ORDER BY mes DESC, total_lesiones DESC;
+
+-- ==========================================
+-- SISTEMA DE AUDITORÍA Y TRIGGERS (SCRUM-46)
+-- ==========================================
+
+-- Tabla de Auditoría de Datos (SCRUM-47)
+CREATE TABLE IF NOT EXISTS auditoria_datos (
+    id SERIAL PRIMARY KEY,
+    tabla_nombre VARCHAR(100) NOT NULL,
+    operacion VARCHAR(20) NOT NULL,
+    registro_id INTEGER NOT NULL,
+    valor_anterior JSONB,
+    valor_nuevo JSONB,
+    usuario VARCHAR(100) DEFAULT CURRENT_USER,
+    fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Procedimiento Almacenado de Auditoría (SCRUM-48)
+CREATE OR REPLACE FUNCTION log_auditoria_datos()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        INSERT INTO auditoria_datos (tabla_nombre, operacion, registro_id, valor_anterior, valor_nuevo)
+        VALUES (TG_TABLE_NAME, TG_OP, NEW.id, NULL, to_jsonb(NEW));
+        RETURN NEW;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO auditoria_datos (tabla_nombre, operacion, registro_id, valor_anterior, valor_nuevo)
+        VALUES (TG_TABLE_NAME, TG_OP, NEW.id, to_jsonb(OLD), to_jsonb(NEW));
+        RETURN NEW;
+    ELSIF (TG_OP = 'DELETE') THEN
+        INSERT INTO auditoria_datos (tabla_nombre, operacion, registro_id, valor_anterior, valor_nuevo)
+        VALUES (TG_TABLE_NAME, TG_OP, OLD.id, to_jsonb(OLD), NULL);
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Definir Triggers de Auditoría (SCRUM-49)
+CREATE OR REPLACE TRIGGER trigger_auditoria_jugadores
+AFTER INSERT OR UPDATE OR DELETE ON jugadores
+FOR EACH ROW
+EXECUTE FUNCTION log_auditoria_datos();
+
+CREATE OR REPLACE TRIGGER trigger_auditoria_lesiones
+AFTER INSERT OR UPDATE OR DELETE ON lesiones
+FOR EACH ROW
+EXECUTE FUNCTION log_auditoria_datos();
+
+-- ==========================================
+-- SISTEMA DE HISTORIAL Y TOP BÚSQUEDAS
+-- ==========================================
+
+-- Tabla de Usuarios
+CREATE TABLE IF NOT EXISTS usuarios (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE, -- Restricción UNIQUE y longitud estándar
+    password VARCHAR(255) NOT NULL,    -- Longitud adecuada para almacenar hashes (bcrypt/argon2)
+    dob DATE NOT NULL,                 -- Tipo DATE nativo para validación de fechas y cálculo de edad
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insertar usuario invitado por defecto
+INSERT INTO usuarios (nombre) VALUES ('Invitado') ON CONFLICT DO NOTHING;
+
+-- Tabla de Historial de Búsquedas
+CREATE TABLE IF NOT EXISTS busquedas (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
+    jugador_id INTEGER REFERENCES jugadores(id) ON DELETE CASCADE,
+    fecha_busqueda TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla del Top de Jugadores Más Buscados
+CREATE TABLE IF NOT EXISTS top_jugadores_buscados (
+    jugador_id INTEGER PRIMARY KEY REFERENCES jugadores(id) ON DELETE CASCADE,
+    nombre VARCHAR(150) NOT NULL,
+    cantidad_busquedas INTEGER DEFAULT 1
+);
+
+-- Función del Trigger para actualizar el top
+CREATE OR REPLACE FUNCTION actualizar_top_busquedas()
+RETURNS TRIGGER AS $$
+DECLARE
+    jugador_nombre VARCHAR(150);
+BEGIN
+    SELECT nombre INTO jugador_nombre FROM jugadores WHERE id = NEW.jugador_id;
+    
+    INSERT INTO top_jugadores_buscados (jugador_id, nombre, cantidad_busquedas)
+    VALUES (NEW.jugador_id, jugador_nombre, 1)
+    ON CONFLICT (jugador_id) 
+    DO UPDATE SET cantidad_busquedas = top_jugadores_buscados.cantidad_busquedas + 1;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger asociado a la inserción en búsquedas
+CREATE OR REPLACE TRIGGER trigger_nueva_busqueda
+AFTER INSERT ON busquedas
+FOR EACH ROW
+EXECUTE FUNCTION actualizar_top_busquedas();

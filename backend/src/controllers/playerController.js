@@ -56,6 +56,24 @@ async function resolveRelations(teamName, positionName, leagueName) {
   return { dbClub, dbPosition };
 }
 
+// Registrar búsqueda en historial (para alimentar el trigger de top búsquedas)
+async function registrarBusqueda(savedPlayers) {
+  try {
+    const db = AppDataSource;
+    const userResult = await db.query("SELECT id FROM usuarios WHERE nombre = 'Invitado' LIMIT 1;");
+    const usuarioId = userResult.length > 0 ? userResult[0].id : 1;
+
+    for (const player of savedPlayers) {
+      await db.query(
+        "INSERT INTO busquedas (usuario_id, jugador_id) VALUES ($1, $2);",
+        [usuarioId, player.id]
+      );
+    }
+  } catch (err) {
+    console.error("Error al registrar historial de búsqueda:", err);
+  }
+}
+
 export const searchPlayer = async (req, res) => {
   try {
     const { name, league, season } = req.query;
@@ -137,6 +155,9 @@ export const searchPlayer = async (req, res) => {
           reporte_ia: lesiones[0] || null,
         });
       }
+
+      // Registrar búsqueda en historial
+      await registrarBusqueda(savedPlayers);
 
       return res.json({
         status: "success",
@@ -264,6 +285,9 @@ export const searchPlayer = async (req, res) => {
         reporte_ia: lesiones[0] || null,
       });
     }
+
+    // Registrar búsqueda en historial
+    await registrarBusqueda(savedPlayers);
 
     return res.json({
       status: "success",
