@@ -11,6 +11,8 @@ import {
   getClubs,
   getInjuryReportSummary,
   getPlayerAge,
+  getAuditLogs,
+  getTopSearched,
 } from "../controllers/playerCrudController.js";
 
 const router = Router();
@@ -29,6 +31,8 @@ router.get("/clubs", getClubs);
 
 // Reportes Consolidados (SCRUM-53)
 router.get("/reports/summary", getInjuryReportSummary);
+router.get("/reports/audit", getAuditLogs);
+router.get("/reports/top-searched", getTopSearched);
 router.get("/:id/age", getPlayerAge);
 
 // Rutas de CRUD Local de futbolistas (SCRUM-44)
