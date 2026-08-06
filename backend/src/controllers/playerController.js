@@ -60,7 +60,7 @@ async function resolveRelations(teamName, positionName, leagueName) {
 async function registrarBusqueda(savedPlayers) {
   try {
     const db = AppDataSource;
-    const userResult = await db.query("SELECT id FROM usuarios WHERE nombre = 'Invitado' LIMIT 1;");
+    const userResult = await db.query("SELECT id FROM usuarios WHERE username = 'Invitado' LIMIT 1;");
     const usuarioId = userResult.length > 0 ? userResult[0].id : 1;
 
     for (const player of savedPlayers) {

@@ -1,7 +1,7 @@
-import { AppBar, Toolbar, Box, Typography } from "@mui/material";
+import { AppBar, Toolbar, Box, Typography, Button } from "@mui/material";
 import { MedicalServices as MedicalServicesIcon } from "@mui/icons-material";
 
-export default function Header({ onLogoClick }) {
+export default function Header({ onLogoClick, onRegisterClick }) {
   return (
     <AppBar
       position="static"
@@ -42,16 +42,41 @@ export default function Header({ onLogoClick }) {
             Physio.AI
           </Typography>
         </Box>
-        <Typography
-          variant="caption"
-          sx={{
-            color: "text.secondary",
-            fontWeight: 600,
-            letterSpacing: 0.5,
-          }}
-        >
-          Football Injury Companion
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3.5 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: "text.secondary",
+              fontWeight: 600,
+              letterSpacing: 0.5,
+              display: { xs: "none", sm: "block" },
+            }}
+          >
+            Football Injury Companion
+          </Typography>
+          {onRegisterClick && (
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              onClick={onRegisterClick}
+              sx={{
+                borderRadius: 12,
+                px: 2.5,
+                py: 0.6,
+                textTransform: "none",
+                fontWeight: 700,
+                fontSize: "0.85rem",
+                borderWidth: "1.5px",
+                "&:hover": {
+                  borderWidth: "1.5px",
+                },
+              }}
+            >
+              Crear Cuenta
+            </Button>
+          )}
+        </Box>
       </Toolbar>
     </AppBar>
   );

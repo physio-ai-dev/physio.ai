@@ -192,7 +192,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
 );
 
 -- Insertar usuario invitado por defecto
-INSERT INTO usuarios (nombre) VALUES ('Invitado') ON CONFLICT DO NOTHING;
+INSERT INTO usuarios (username, email, password, dob) 
+VALUES ('Invitado', 'invitado@physio.ai', 'no-password-hash', '2000-01-01') 
+ON CONFLICT (email) DO NOTHING;
 
 -- Tabla de Historial de Búsquedas
 CREATE TABLE IF NOT EXISTS busquedas (
