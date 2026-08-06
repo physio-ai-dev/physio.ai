@@ -9,6 +9,7 @@ import ResultPanel from "./components/ResultPanel";
 import CreatePlayerPage from "./components/CreatePlayerPage";
 import LandingPage from "./components/LandingPage";
 import MainLayout from "./components/layout/MainLayout";
+import RegisterPage from "./components/RegisterPage";
 
 // Configuración de un tema oscuro de alta gama (Premium Dark Mode)
 const darkTheme = createTheme({
@@ -249,7 +250,7 @@ const calculateAge = (birthdateStr) => {
 
 function App() {
   const [showLanding, setShowLanding] = useState(true);
-  const [page, setPage] = useState("search"); // "search" | "create"
+  const [page, setPage] = useState("search"); // "search" | "create" | "register"
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
   const [jugador, setJugador] = useState(null);
@@ -258,7 +259,15 @@ function App() {
   const [error, setError] = useState(null);
 
   if (showLanding) {
-    return <LandingPage onStart={() => setShowLanding(false)} />;
+    return (
+      <LandingPage
+        onStart={() => setShowLanding(false)}
+        onRegister={() => {
+          setShowLanding(false);
+          setPage("register");
+        }}
+      />
+    );
   }
 
   const handleBuscarYAnalizar = async (e) => {
@@ -329,7 +338,10 @@ function App() {
         }}
       >
         {/* Navbar */}
-        <Header onLogoClick={() => setPage("search")} />
+        <Header
+          onLogoClick={() => setPage("search")}
+          onRegisterClick={() => setPage("register")}
+        />
 
         {/* Contenido Principal */}
         <Container
@@ -345,6 +357,12 @@ function App() {
           {page === "create" ? (
             /* Vista 1: Formulario de Alta Local */
             <CreatePlayerPage onGoBack={() => setPage("search")} />
+          ) : page === "register" ? (
+            /* Vista Nueva: Formulario de Registro de Usuario (SCRUM-67) */
+            <RegisterPage
+              onGoBack={() => setPage("search")}
+              onRegisterSuccess={() => setPage("search")}
+            />
           ) : resultadoFinal ? (
             /* Vista 2: PANEL DE RESULTADOS AUTOMÁTICO */
             <ResultPanel

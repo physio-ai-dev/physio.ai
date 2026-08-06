@@ -81,4 +81,18 @@ export const api = {
     }
     return response.json();
   },
+
+  // 7. POST /api/auth/register (Registrar un nuevo usuario - SCRUM-65)
+  registrarUsuario: async (datos) => {
+    const response = await fetch(`${BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datos),
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al realizar el registro de usuario.");
+    }
+    return response.json();
+  },
 };

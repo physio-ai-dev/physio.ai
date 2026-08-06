@@ -58,7 +58,7 @@ const darkTheme = createTheme({
   },
 });
 
-export default function LandingPage({ onStart }) {
+export default function LandingPage({ onStart, onRegister }) {
   
   /* ==========================================================================
      SCRUM-57: Datos de los bloques informativos inferiores (Características Premium)
@@ -133,22 +133,37 @@ export default function LandingPage({ onStart }) {
             {/* ==========================================================================
                SCRUM-56 (Acceso rápido desde Navbar): Botón CTA secundario con transición
                ========================================================================== */}
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={onStart}
-              endIcon={<ArrowForwardIcon />}
-              sx={{
-                boxShadow: "0 4px 14px 0 rgba(16, 185, 129, 0.2)",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Transición suave
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 6px 20px 0 rgba(16, 185, 129, 0.4)",
-                },
-              }}
-            >
-              Ingresar al Buscador
-            </Button>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant="outlined"
+                color="inherit"
+                onClick={onRegister}
+                sx={{
+                  borderRadius: 16,
+                  textTransform: "none",
+                  fontWeight: 700,
+                  px: 3,
+                }}
+              >
+                Registrarse
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={onStart}
+                endIcon={<ArrowForwardIcon />}
+                sx={{
+                  boxShadow: "0 4px 14px 0 rgba(16, 185, 129, 0.2)",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Transición suave
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 20px 0 rgba(16, 185, 129, 0.4)",
+                  },
+                }}
+              >
+                Ingresar al Buscador
+              </Button>
+            </Box>
           </Toolbar>
         </AppBar>
 
@@ -220,7 +235,7 @@ export default function LandingPage({ onStart }) {
                SCRUM-56: Botón principal de Call to Action (CTA)
                Implementa efectos de transición suave y redirige al buscador/dashboard.
                ========================================================================== */}
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ pt: 2 }}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ pt: 2 }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -245,6 +260,27 @@ export default function LandingPage({ onStart }) {
                 }}
               >
                 Ingresar al Buscador Clínico
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={onRegister}
+                sx={{
+                  px: 4,
+                  py: 1.8,
+                  fontSize: "1.1rem",
+                  borderRadius: 16,
+                  borderWidth: "2px",
+                  fontWeight: 700,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    borderWidth: "2px",
+                    bgcolor: "rgba(16, 185, 129, 0.05)",
+                  },
+                }}
+              >
+                Crear Cuenta Nueva
               </Button>
             </Stack>
           </Stack>

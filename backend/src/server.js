@@ -4,6 +4,7 @@ import "dotenv/config";
 import AppDataSource from "./config/database.js";
 import playerRoutes from "./routes/playerRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/players", playerRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/auth", authRoutes);
 
 // Init PostgreSQL, Server
 AppDataSource.initialize()
