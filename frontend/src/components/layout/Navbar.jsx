@@ -3,12 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Box, Container } from '@mui/material';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 
-/**
- * ============================================================================
- * SCRUM-61: Componente Global Navbar
- * - Aislado para que no interfiera con los cambios de vista/rutas.
- * ============================================================================
- */
 export default function Navbar() {
   const navigate = useNavigate();
 
@@ -52,24 +46,42 @@ export default function Navbar() {
           </Box>
 
           {/* Enlaces de navegación */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Button color="inherit" component={Link} to="/">
-              Inicio
-            </Button>
-            
-            {/* Navegación a la app/buscador */}
+          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+            {/* Botón Registrarse */}
             <Button
-              variant="contained"
-              onClick={() => navigate('/app')}
+              variant="outlined"
+              onClick={() => navigate('/register')}
               sx={{
-                bgcolor: '#10b981',
-                '&:hover': { bgcolor: '#059669' },
-                borderRadius: 3,
-                fontWeight: 700,
+                borderColor: 'rgba(255, 255, 255, 0.2)',
+                color: '#f8fafc',
+                fontWeight: 600,
                 textTransform: 'none',
+                borderRadius: '20px',
+                px: 2.5,
+                '&:hover': {
+                  borderColor: '#10b981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                },
               }}
             >
-              Ir al Buscador
+              Registrarse
+            </Button>
+
+            {/* Botón Iniciar Sesión (Reemplaza a "Ingresar al Buscador") */}
+            <Button
+              variant="contained"
+              onClick={() => navigate('/login')}
+              sx={{
+                bgcolor: '#10b981',
+                color: '#030712',
+                '&:hover': { bgcolor: '#34d399' },
+                borderRadius: '20px',
+                fontWeight: 700,
+                textTransform: 'none',
+                px: 2.5,
+              }}
+            >
+              Iniciar Sesión
             </Button>
           </Box>
         </Toolbar>

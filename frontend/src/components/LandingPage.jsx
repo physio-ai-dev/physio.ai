@@ -130,9 +130,7 @@ export default function LandingPage({ onStart, onRegister }) {
               </Typography>
             </Box>
 
-            {/* ==========================================================================
-               SCRUM-56 (Acceso rápido desde Navbar): Botón CTA secundario con transición
-               ========================================================================== */}
+            {/* Acceso rápido desde Navbar */}
             <Box sx={{ display: "flex", gap: 2 }}>
               <Button
                 variant="outlined"
@@ -154,23 +152,20 @@ export default function LandingPage({ onStart, onRegister }) {
                 endIcon={<ArrowForwardIcon />}
                 sx={{
                   boxShadow: "0 4px 14px 0 rgba(16, 185, 129, 0.2)",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Transición suave
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   "&:hover": {
                     transform: "translateY(-2px)",
                     boxShadow: "0 6px 20px 0 rgba(16, 185, 129, 0.4)",
                   },
                 }}
               >
-                Ingresar al Buscador
+                Iniciar Sesión
               </Button>
             </Box>
           </Toolbar>
         </AppBar>
 
-        {/* ==========================================================================
-           SCRUM-55: Sección Hero minimalista de alto impacto visual.
-           Explica la propuesta de valor de Physio.AI sin exigir autenticación.
-           ========================================================================== */}
+        {/* Sección Hero */}
         <Container maxWidth="lg" sx={{ pt: { xs: 8, md: 12 }, pb: 8 }}>
           <Stack spacing={4} alignItems="center" textAlign="center">
             
@@ -231,26 +226,22 @@ export default function LandingPage({ onStart, onRegister }) {
               al criterio clínico sustentado por IA.
             </Typography>
 
-            {/* ==========================================================================
-               SCRUM-56: Botón principal de Call to Action (CTA)
-               Implementa efectos de transición suave y redirige al buscador/dashboard.
-               ========================================================================== */}
+            {/* Botón principal de CTA */}
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ pt: 2 }}>
               <Button
                 variant="contained"
                 color="primary"
                 size="large"
-                onClick={onStart} // Función que conmuta la vista al buscador clínico
+                onClick={onStart}
                 endIcon={<ArrowForwardIcon />}
                 sx={{
                   px: 4,
                   py: 1.8,
                   fontSize: "1.1rem",
                   boxShadow: "0 8px 25px 0 rgba(16, 185, 129, 0.3)",
-                  // Efectos de transición requeridos en SCRUM-56
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   "&:hover": {
-                    transform: "translateY(-3px)", // Elevación suave
+                    transform: "translateY(-3px)",
                     boxShadow: "0 12px 30px 0 rgba(16, 185, 129, 0.5)",
                     bgcolor: "primary.light",
                   },
@@ -261,36 +252,11 @@ export default function LandingPage({ onStart, onRegister }) {
               >
                 Ingresar al Buscador Clínico
               </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                size="large"
-                onClick={onRegister}
-                sx={{
-                  px: 4,
-                  py: 1.8,
-                  fontSize: "1.1rem",
-                  borderRadius: 16,
-                  borderWidth: "2px",
-                  fontWeight: 700,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    borderWidth: "2px",
-                    bgcolor: "rgba(16, 185, 129, 0.05)",
-                  },
-                }}
-              >
-                Crear Cuenta Nueva
-              </Button>
             </Stack>
           </Stack>
         </Container>
 
-        {/* ==========================================================================
-           SCRUM-57: Maquetación de bloques informativos inferiores.
-           Destaca las características premium: Auditoría médica por IA, Analíticas 
-           avanzadas y Control de suscripciones.
-           ========================================================================== */}
+        {/* Bloques informativos inferiores */}
         <Container maxWidth="lg" sx={{ py: 8 }}>
           <Grid container spacing={4}>
             {caracteristicasPremium.map((item, index) => (
