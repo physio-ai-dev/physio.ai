@@ -167,7 +167,7 @@ export default function LandingPage({ onStart, onRegister }) {
 
         {/* Sección Hero */}
         <Container maxWidth="lg" sx={{ pt: { xs: 8, md: 12 }, pb: 8 }}>
-          <Stack spacing={4} alignItems="center" textAlign="center">
+          <Stack spacing={4} sx={{ alignItems: "center", textAlign: "center" }}>
             
             {/* Elemento gráfico de la propuesta de valor */}
             <Chip

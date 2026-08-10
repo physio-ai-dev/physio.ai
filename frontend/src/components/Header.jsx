@@ -1,7 +1,13 @@
 import { AppBar, Toolbar, Box, Typography, Button } from "@mui/material";
-import { MedicalServices as MedicalServicesIcon } from "@mui/icons-material";
+import { MedicalServices as MedicalServicesIcon, Logout as LogoutIcon } from "@mui/icons-material";
 
-export default function Header({ onLogoClick, onRegisterClick }) {
+export default function Header({
+  onLogoClick,
+  onRegisterClick,
+  onLoginClick,
+  onLogout,
+  isLoggedIn,
+}) {
   return (
     <AppBar
       position="static"
@@ -42,7 +48,8 @@ export default function Header({ onLogoClick, onRegisterClick }) {
             Physio.AI
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3.5 }}>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Typography
             variant="caption"
             sx={{
@@ -50,16 +57,20 @@ export default function Header({ onLogoClick, onRegisterClick }) {
               fontWeight: 600,
               letterSpacing: 0.5,
               display: { xs: "none", sm: "block" },
+              mr: 1,
             }}
           >
             Football Injury Companion
           </Typography>
-          {onRegisterClick && (
+
+          {isLoggedIn ? (
+            /* Botón cuando el usuario TIENE sesión activa */
             <Button
               variant="outlined"
-              color="primary"
+              color="error"
               size="small"
-              onClick={onRegisterClick}
+              startIcon={<LogoutIcon />}
+              onClick={onLogout}
               sx={{
                 borderRadius: 12,
                 px: 2.5,
@@ -73,8 +84,53 @@ export default function Header({ onLogoClick, onRegisterClick }) {
                 },
               }}
             >
-              Crear Cuenta
+              Cerrar Sesión
             </Button>
+          ) : (
+            /* Botones cuando NO hay sesión activa */
+            <>
+              {onRegisterClick && (
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={onRegisterClick}
+                  sx={{
+                    borderRadius: 12,
+                    px: 2.5,
+                    py: 0.6,
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    borderWidth: "1.5px",
+                    "&:hover": {
+                      borderWidth: "1.5px",
+                    },
+                  }}
+                >
+                  Crear Cuenta
+                </Button>
+              )}
+
+              {onLoginClick && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={onLoginClick}
+                  sx={{
+                    borderRadius: 12,
+                    px: 2.5,
+                    py: 0.6,
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  Iniciar Sesión
+                </Button>
+              )}
+            </>
           )}
         </Box>
       </Toolbar>

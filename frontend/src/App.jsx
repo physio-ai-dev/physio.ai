@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { api } from "./api/backend";
+import { isAuthenticated, logoutUser } from "./api/authService";
 import { ThemeProvider, createTheme, CssBaseline, Container, Box, Typography, Divider } from "@mui/material";
 import Header from "./components/Header";
 import Disclaimer from "./components/Disclaimer";
@@ -8,7 +8,6 @@ import SearchForm from "./components/SearchForm";
 import ResultPanel from "./components/ResultPanel";
 import CreatePlayerPage from "./components/CreatePlayerPage";
 import LandingPage from "./components/LandingPage";
-import MainLayout from "./components/layout/MainLayout";
 import RegisterPage from "./components/RegisterPage";
 import LoginModal from "./components/LoginModal";
 
@@ -238,6 +237,7 @@ function App() {
   const [showLanding, setShowLanding] = useState(true);
   const [page, setPage] = useState("search");
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
   const [jugador, setJugador] = useState(null);
@@ -245,31 +245,22 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // AL HACER CLIC EN INICIAR SESIÓN EN LA LANDING:
-  // Se abre el modal de Login sin ocultar la pantalla de fondo.
-  if (showLanding) {
-    return (
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
-        <LandingPage
-          onStart={() => setIsLoginOpen(true)} // <-- Abre el modal en lugar de saltar directo
-          onRegister={() => {
-            setShowLanding(false);
-            setPage("register");
-          }}
-        />
-        <LoginModal
-          open={isLoginOpen}
-          onClose={() => setIsLoginOpen(false)}
-          onSuccess={() => {
-            setIsLoginOpen(false);
-            setShowLanding(false); // Solo pasa al buscador cuando el login fue EXITOSO
-            setPage("search");
-          }}
-        />
-      </ThemeProvider>
-    );
-  }
+  useEffect(() => {
+    const logged = isAuthenticated();
+    setIsLoggedIn(logged);
+    if (logged) {
+      setShowLanding(false);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    logoutUser();
+    setIsLoggedIn(false);
+    setShowLanding(true);
+    setPage("search");
+    setJugador(null);
+    setResultadoFinal(null);
+  };
 
   const handleBuscarYAnalizar = async (e) => {
     e.preventDefault();
@@ -335,68 +326,99 @@ function App() {
           bgcolor: "background.default",
         }}
       >
-        <Header
-          onLogoClick={() => setPage("search")}
-          onRegisterClick={() => setPage("register")}
-          onLoginClick={() => setIsLoginOpen(true)}
-        />
-
-        <Container
-          maxWidth="md"
-          sx={{
-            py: 6,
-            flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
-        >
-          {page === "create" ? (
-            <CreatePlayerPage onGoBack={() => setPage("search")} />
-          ) : page === "register" ? (
-            <RegisterPage
-              onGoBack={() => setPage("search")}
-              onRegisterSuccess={() => setPage("search")}
-            />
-          ) : resultadoFinal ? (
-            <ResultPanel
-              resultadoFinal={resultadoFinal}
-              jugador={jugador}
-              edadCalculada={edadCalculada}
-              listaCoincidencias={listaCoincidencias}
-              formatBirthdate={formatBirthdate}
-              renderLegibleReport={renderLegibleReport}
-              onBackToMatches={() => setJugador(null)}
-              onReset={() => {
-                setJugador(null);
-                setResultadoFinal(null);
-                setBusqueda("");
-                setListaCoincidencias([]);
+        {showLanding ? (
+          /* Renderiza únicamente la Landing Page (la cual ya contiene su propio Header interno) */
+          <LandingPage
+            onStart={() => setIsLoginOpen(true)}
+            onRegister={() => {
+              setShowLanding(false);
+              setPage("register");
+            }}
+          />
+        ) : (
+          /* Renderiza la app principal con el Header global únicamente si ya no está en la Landing */
+          <>
+            <Header
+              onLogoClick={() => {
+                if (isLoggedIn) {
+                  setShowLanding(false);
+                } else {
+                  setShowLanding(true);
+                }
+                setPage("search");
               }}
+              onRegisterClick={() => {
+                setShowLanding(false);
+                setPage("register");
+              }}
+              onLoginClick={() => setIsLoginOpen(true)}
+              onLogout={handleLogout}
+              isLoggedIn={isLoggedIn}
             />
-          ) : (
-            <>
-              <Disclaimer />
-              <SearchForm
-                busqueda={busqueda}
-                setBusqueda={setBusqueda}
-                loading={loading}
-                error={error}
-                listaCoincidencias={listaCoincidencias}
-                jugador={jugador}
-                onSubmit={handleBuscarYAnalizar}
-                onSelectPlayer={seleccionarJugador}
-                onNavigateToCreate={() => setPage("create")}
-              />
-            </>
-          )}
-        </Container>
+
+            <Container
+              maxWidth="md"
+              sx={{
+                py: 6,
+                flexGrow: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+              }}
+            >
+              {page === "create" ? (
+                <CreatePlayerPage onGoBack={() => setPage("search")} />
+              ) : page === "register" ? (
+                <RegisterPage
+                  onGoBack={() => {
+                    if (!isLoggedIn) setShowLanding(true);
+                    setPage("search");
+                  }}
+                  onRegisterSuccess={() => setPage("search")}
+                />
+              ) : resultadoFinal ? (
+                <ResultPanel
+                  resultadoFinal={resultadoFinal}
+                  jugador={jugador}
+                  edadCalculada={edadCalculada}
+                  listaCoincidencias={listaCoincidencias}
+                  formatBirthdate={formatBirthdate}
+                  renderLegibleReport={renderLegibleReport}
+                  onBackToMatches={() => setJugador(null)}
+                  onReset={() => {
+                    setJugador(null);
+                    setResultadoFinal(null);
+                    setBusqueda("");
+                    setListaCoincidencias([]);
+                  }}
+                />
+              ) : (
+                <>
+                  <Disclaimer />
+                  <SearchForm
+                    busqueda={busqueda}
+                    setBusqueda={setBusqueda}
+                    loading={loading}
+                    error={error}
+                    listaCoincidencias={listaCoincidencias}
+                    jugador={jugador}
+                    onSubmit={handleBuscarYAnalizar}
+                    onSelectPlayer={seleccionarJugador}
+                    onNavigateToCreate={() => setPage("create")}
+                  />
+                </>
+              )}
+            </Container>
+          </>
+        )}
 
         <LoginModal
           open={isLoginOpen}
           onClose={() => setIsLoginOpen(false)}
           onSuccess={() => {
             setIsLoginOpen(false);
+            setIsLoggedIn(true);
+            setShowLanding(false);
             setPage("search");
           }}
         />
