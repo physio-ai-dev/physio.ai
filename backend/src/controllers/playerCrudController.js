@@ -4,6 +4,7 @@ import InjurySchema from "../models/InjurySchema.js";
 import LeagueSchema from "../models/LeagueSchema.js";
 import ClubSchema from "../models/ClubSchema.js";
 import PositionSchema from "../models/PositionSchema.js";
+import { analyzeInjuryWithGemini } from "../services/geminiService.js";
 
 // Obtener repositorios
 const playerRepository = AppDataSource.getRepository(PlayerSchema);
@@ -424,6 +425,57 @@ export const getTopSearched = async (req, res) => {
     });
   } catch (error) {
     console.error("Error al obtener top búsquedas:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const recordPlayerSelection = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.headers["x-user-email"];
+    let usuarioId = 1;
+    if (userEmail) {
+      const userResult = await AppDataSource.query("SELECT id FROM usuarios WHERE email = $1 LIMIT 1;", [userEmail]);
+      if (userResult.length > 0) {
+        usuarioId = userResult[0].id;
+      }
+    }
+    await AppDataSource.query(
+      "INSERT INTO busquedas (usuario_id, jugador_id) VALUES ($1, $2);",
+      [usuarioId, parseInt(id, 10)]
+    );
+    return res.json({ status: "success" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const getOrGenerateAuditReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let lesion = await injuryRepository.findOne({
+      where: { jugador_id: parseInt(id, 10) },
+      order: { id: "DESC" }
+    });
+    if (!lesion) {
+      const aiAnalysis = await analyzeInjuryWithGemini("Rotura fibrilar en el bíceps femoral (Isquiotibiales)", 21);
+      lesion = injuryRepository.create({
+        jugador_id: parseInt(id, 10),
+        tipo_lesion: "Rotura fibrilar en el bíceps femoral (Isquiotibiales)",
+        dias_estimados_club: 21,
+        tiempo_clinico_ia: aiAnalysis.tiempo_clinico_ia || null,
+        analisis_comparativo: aiAnalysis.analisis_comparativo || "",
+        estado: "En Recuperación"
+      });
+      await injuryRepository.save(lesion);
+    } else if (!lesion.analisis_comparativo || !lesion.analisis_comparativo.includes("###")) {
+      const aiAnalysis = await analyzeInjuryWithGemini(lesion.tipo_lesion, lesion.dias_estimados_club);
+      lesion.tiempo_clinico_ia = aiAnalysis.tiempo_clinico_ia || null;
+      lesion.analisis_comparativo = aiAnalysis.analisis_comparativo || "";
+      await injuryRepository.save(lesion);
+    }
+    return res.json({ status: "success", data: lesion });
+  } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };

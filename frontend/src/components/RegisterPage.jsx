@@ -47,7 +47,13 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
     const { username, email, password, passwordConfirm, dob } = formData;
 
     // 1. Validaciones básicas en el cliente
-    if (!username.trim() || !email.trim() || !password.trim() || !passwordConfirm.trim() || !dob.trim()) {
+    if (
+      !username.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !passwordConfirm.trim() ||
+      !dob.trim()
+    ) {
       setError("Todos los campos son obligatorios.");
       return;
     }
@@ -74,7 +80,9 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
       const response = await api.registrarUsuario(formData);
 
       if (response && response.status === "success") {
-        setSuccess("¡Cuenta creada con éxito! Serás redirigido en unos segundos...");
+        setSuccess(
+          "¡Cuenta creada con éxito! Serás redirigido en unos segundos...",
+        );
         setFormData({
           username: "",
           email: "",
@@ -82,7 +90,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
           passwordConfirm: "",
           dob: "",
         });
-        
+
         // Esperar 2 segundos para mostrar el mensaje de éxito antes de regresar
         setTimeout(() => {
           if (onRegisterSuccess) {
@@ -118,7 +126,11 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={onGoBack}
-          sx={{ color: "text.secondary", textTransform: "none", fontWeight: 700 }}
+          sx={{
+            color: "text.secondary",
+            textTransform: "none",
+            fontWeight: 700,
+          }}
         >
           Volver
         </Button>
@@ -129,28 +141,48 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
             <PersonAddIcon color="primary" sx={{ fontSize: 32 }} />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 950, letterSpacing: "-0.5px" }}>
-                Crear Cuenta
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 950, letterSpacing: "-0.5px" }}
+              >
+                Registro
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mt: 0.5 }}>
-                Regístrate para acceder a las auditorías personalizadas de Physio.AI
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontWeight: 500, mt: 0.5 }}
+              >
+                Regístrate para acceder a las auditorías personalizadas de
+                Physio.AI
               </Typography>
             </Box>
           </Box>
 
           {/* Mensajes de Alerta */}
           {error && (
-            <Alert severity="error" variant="outlined" sx={{ mb: 4, borderRadius: 3 }}>
+            <Alert
+              severity="error"
+              variant="outlined"
+              sx={{ mb: 4, borderRadius: 3 }}
+            >
               {error}
             </Alert>
           )}
           {success && (
-            <Alert severity="success" variant="outlined" sx={{ mb: 4, borderRadius: 3 }}>
+            <Alert
+              severity="success"
+              variant="outlined"
+              sx={{ mb: 4, borderRadius: 3 }}
+            >
               {success}
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
+          >
             {/* Nombre de Usuario */}
             <TextField
               fullWidth
@@ -161,7 +193,9 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               onChange={handleChange}
               disabled={loading}
               InputProps={{
-                startAdornment: <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                startAdornment: (
+                  <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                ),
               }}
             />
 
@@ -175,7 +209,9 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               onChange={handleChange}
               disabled={loading}
               InputProps={{
-                startAdornment: <EmailIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                startAdornment: (
+                  <EmailIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                ),
               }}
             />
 
@@ -190,7 +226,9 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               onChange={handleChange}
               disabled={loading}
               InputProps={{
-                startAdornment: <CalendarIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                startAdornment: (
+                  <CalendarIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                ),
               }}
             />
 
@@ -205,7 +243,9 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               onChange={handleChange}
               disabled={loading}
               InputProps={{
-                startAdornment: <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                startAdornment: (
+                  <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                ),
               }}
             />
 
@@ -220,7 +260,9 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               onChange={handleChange}
               disabled={loading}
               InputProps={{
-                startAdornment: <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                startAdornment: (
+                  <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                ),
               }}
             />
 
@@ -244,7 +286,11 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
                 disabled={loading}
                 sx={{ px: 4, py: 1, borderRadius: 3 }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : "Registrarse"}
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Registrarse"
+                )}
               </Button>
             </Box>
           </Box>

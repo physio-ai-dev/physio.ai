@@ -1,5 +1,8 @@
-import { AppBar, Toolbar, Box, Typography, Button } from "@mui/material";
-import { MedicalServices as MedicalServicesIcon, Logout as LogoutIcon } from "@mui/icons-material";
+import { AppBar, Toolbar, Box, Typography, Button, Avatar, Chip, IconButton } from "@mui/material";
+import {
+  MedicalServices as MedicalServicesIcon,
+  Logout as LogoutIcon,
+} from "@mui/icons-material";
 
 export default function Header({
   onLogoClick,
@@ -7,6 +10,8 @@ export default function Header({
   onLoginClick,
   onLogout,
   isLoggedIn,
+  user,
+  onPricingClick,
 }) {
   return (
     <AppBar
@@ -63,55 +68,56 @@ export default function Header({
             Football Injury Companion
           </Typography>
 
-          {isLoggedIn ? (
-            /* Botón cuando el usuario TIENE sesión activa */
+          {onPricingClick && user?.subscription_tier !== "premium" && (
             <Button
-              variant="outlined"
-              color="error"
+              color="inherit"
               size="small"
-              startIcon={<LogoutIcon />}
-              onClick={onLogout}
-              sx={{
-                borderRadius: 12,
-                px: 2.5,
-                py: 0.6,
-                textTransform: "none",
-                fontWeight: 700,
-                fontSize: "0.85rem",
-                borderWidth: "1.5px",
-                "&:hover": {
-                  borderWidth: "1.5px",
-                },
-              }}
+              onClick={onPricingClick}
+              sx={{ textTransform: "none", fontWeight: 700, opacity: 0.85 }}
             >
-              Cerrar Sesión
+              Planes
             </Button>
+          )}
+
+          {isLoggedIn ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: user?.subscription_tier === "premium" ? "#f59e0b" : "#6b7280",
+                    fontSize: "0.95rem",
+                    fontWeight: 800,
+                  }}
+                >
+                  {user?.username ? user.username[0].toUpperCase() : "U"}
+                </Avatar>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                    {user?.username || "Usuario"}
+                  </Typography>
+                  <Chip
+                    label={user?.subscription_tier === "premium" ? "PRO" : "Gratuito"}
+                    size="small"
+                    sx={{
+                      height: 16,
+                      fontSize: "0.65rem",
+                      fontWeight: 800,
+                      bgcolor: user?.subscription_tier === "premium" ? "rgba(245, 158, 11, 0.1)" : "rgba(255, 255, 255, 0.05)",
+                      color: user?.subscription_tier === "premium" ? "#fbbf24" : "text.secondary",
+                      border: user?.subscription_tier === "premium" ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid rgba(255, 255, 255, 0.05)",
+                    }}
+                  />
+                </Box>
+              </Box>
+              <IconButton onClick={onLogout} size="small" sx={{ color: "error.main" }}>
+                <LogoutIcon fontSize="small" />
+              </IconButton>
+            </Box>
           ) : (
             /* Botones cuando NO hay sesión activa */
             <>
-              {onRegisterClick && (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  onClick={onRegisterClick}
-                  sx={{
-                    borderRadius: 12,
-                    px: 2.5,
-                    py: 0.6,
-                    textTransform: "none",
-                    fontWeight: 700,
-                    fontSize: "0.85rem",
-                    borderWidth: "1.5px",
-                    "&:hover": {
-                      borderWidth: "1.5px",
-                    },
-                  }}
-                >
-                  Crear Cuenta
-                </Button>
-              )}
-
               {onLoginClick && (
                 <Button
                   variant="contained"

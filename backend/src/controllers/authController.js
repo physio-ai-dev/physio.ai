@@ -1,6 +1,7 @@
 import AppDataSource from "../config/database.js";
 import UserSchema from "../models/UserSchema.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export const register = async (req, res) => {
   try {
@@ -90,5 +91,47 @@ export const register = async (req, res) => {
       error: "Ocurrió un error en el servidor al procesar el registro.",
       details: error.message,
     });
+  }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email y contraseña requeridos." });
+    }
+
+    const userRepository = AppDataSource.getRepository(UserSchema);
+    const user = await userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(401).json({ error: "Credenciales incorrectas." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Credenciales incorrectas." });
+    }
+
+    const JWT_SECRET = process.env.JWT_SECRET || "secreto_super_seguro";
+    const token = jwt.sign(
+      { id: user.id, email: user.email, rol: user.rol, subscription_tier: user.subscription_tier },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    return res.json({
+      status: "success",
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        rol: user.rol,
+        subscription_tier: user.subscription_tier
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 };
