@@ -1,5 +1,14 @@
 const BASE_URL = "http://localhost:4000/api";
 
+// Helper para obtener las cabeceras con el Token JWT guardado
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
 export const api = {
   // 1. GET /api/players/search?name=...
   buscarJugador: async (nombre) => {
@@ -94,5 +103,36 @@ export const api = {
       throw new Error(errData.error || "Error al realizar el registro de usuario.");
     }
     return response.json();
+  },
+
+  // 8. GET /api/stats (SCRUM-81: Obtener estadísticas numéricas con JWT)
+  obtenerEstadisticas: async (jugadorId) => {
+    const response = await fetch(`${BASE_URL}/stats?id=${jugadorId}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener las estadísticas.");
+    }
+
+    return await response.json();
+  },
+
+  // (SCRUM-81: Obtener análisis predictivo de IA con JWT)
+  obtenerAnalisisIA: async (jugadorId) => {
+    const response = await fetch(`${BASE_URL}/analysis`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ id: jugadorId }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al generar el análisis de la IA.");
+    }
+
+    return await response.json();
   },
 };
