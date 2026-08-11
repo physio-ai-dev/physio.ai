@@ -23,8 +23,7 @@ const PlayerSchema = new EntitySchema({
       nullable: true,
     },
     fecha_nacimiento: {
-      type: "varchar",
-      length: 50,
+      type: "date",
       nullable: true,
     },
     estatura: {

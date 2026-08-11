@@ -4,18 +4,16 @@ import InjurySchema from "../models/InjurySchema.js";
 import ClubSchema from "../models/ClubSchema.js";
 import PositionSchema from "../models/PositionSchema.js";
 import LeagueSchema from "../models/LeagueSchema.js";
+import UserSchema from "../models/UserSchema.js";
+import SearchLimitSchema from "../models/SearchLimitSchema.js";
 import { searchPlayerFromAPI } from "../services/footballApiService.js";
-import { analyzeInjuryWithGemini } from "../services/geminiService.js";
-import { ILike } from "typeorm";
 
-// Helper para resolver relaciones dinámicas basadas en nombres de texto plano
 async function resolveRelations(teamName, positionName, leagueName) {
   const clubRepository = AppDataSource.getRepository(ClubSchema);
   const positionRepository = AppDataSource.getRepository(PositionSchema);
   const leagueRepository = AppDataSource.getRepository(LeagueSchema);
 
-  // 1. Resolver posición y mapear a los 4 permitidos por el CHECK constraint
-  let resolvedPositionName = "Defensa"; // Fallback por defecto
+  let resolvedPositionName = "Defensa";
   const pLower = (positionName || "").toLowerCase();
   
   if (pLower.includes("goalkeeper") || pLower.includes("arquero") || pLower.includes("portero")) {
@@ -33,14 +31,12 @@ async function resolveRelations(teamName, positionName, leagueName) {
     dbPosition = await positionRepository.save(positionRepository.create({ nombre: resolvedPositionName }));
   }
 
-  // 2. Resolver Liga
   const resolvedLeagueName = leagueName || "Local / Otro";
   let dbLeague = await leagueRepository.findOne({ where: { nombre: resolvedLeagueName } });
   if (!dbLeague) {
     dbLeague = await leagueRepository.save(leagueRepository.create({ nombre: resolvedLeagueName, pais: "Importado" }));
   }
 
-  // 3. Resolver Club
   const resolvedClubName = teamName || "Club Desconocido";
   let dbClub = await clubRepository.findOne({ where: { nombre: resolvedClubName }, relations: ["liga"] });
   if (!dbClub) {
@@ -56,38 +52,56 @@ async function resolveRelations(teamName, positionName, leagueName) {
   return { dbClub, dbPosition };
 }
 
-// Registrar búsqueda en historial (para alimentar el trigger de top búsquedas)
-async function registrarBusqueda(savedPlayers) {
-  try {
-    const db = AppDataSource;
-    const userResult = await db.query("SELECT id FROM usuarios WHERE username = 'Invitado' LIMIT 1;");
-    const usuarioId = userResult.length > 0 ? userResult[0].id : 1;
-
-    for (const player of savedPlayers) {
-      await db.query(
-        "INSERT INTO busquedas (usuario_id, jugador_id) VALUES ($1, $2);",
-        [usuarioId, player.id]
-      );
-    }
-  } catch (err) {
-    console.error("Error al registrar historial de búsqueda:", err);
-  }
-}
-
 export const searchPlayer = async (req, res) => {
   try {
     const { name, league, season } = req.query;
 
     if (!name) {
-      return res
-        .status(400)
-        .json({ error: "El parámetro de búsqueda 'name' es requerido" });
+      return res.status(400).json({ error: "El parámetro de búsqueda 'name' es requerido" });
+    }
+
+    const userEmail = req.headers["x-user-email"];
+    let isPremium = false;
+    let identificador = req.ip || req.headers["x-forwarded-for"] || "127.0.0.1";
+
+    if (userEmail) {
+      const userRepository = AppDataSource.getRepository(UserSchema);
+      const user = await userRepository.findOne({ where: { email: userEmail } });
+      if (user) {
+        identificador = user.email;
+        if (user.subscription_tier === "premium") {
+          isPremium = true;
+        }
+      }
+    }
+
+    if (!isPremium) {
+      const limitRepository = AppDataSource.getRepository(SearchLimitSchema);
+      const today = new Date().toISOString().split("T")[0];
+      let limitLog = await limitRepository.findOne({ where: { identificador } });
+
+      if (limitLog) {
+        if (limitLog.ultima_busqueda === today && limitLog.cantidad >= 3) {
+          return res.status(429).json({
+            status: "limit_reached",
+            error: "Has alcanzado el límite de 3 búsquedas gratuitas por día."
+          });
+        }
+        limitLog.cantidad = limitLog.ultima_busqueda === today ? limitLog.cantidad + 1 : 1;
+        limitLog.ultima_busqueda = today;
+        await limitRepository.save(limitLog);
+      } else {
+        await limitRepository.save(limitRepository.create({
+          identificador,
+          cantidad: 1,
+          ultima_busqueda: today
+        }));
+      }
     }
 
     const playerRepository = AppDataSource.getRepository(PlayerSchema);
     const injuryRepository = AppDataSource.getRepository(InjurySchema);
 
-    // 🚨 OPTIMIZACIÓN: Buscar localmente primero
     const cleanSearchName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
     const localPlayers = await playerRepository.createQueryBuilder("player")
@@ -98,46 +112,13 @@ export const searchPlayer = async (req, res) => {
       .getMany();
 
     if (localPlayers && localPlayers.length > 0) {
-      console.log(`✅ Jugador(es) encontrado(s) en la base de datos local (Modo Caché)!`);
       const savedPlayers = [];
 
       for (const player of localPlayers) {
-        let lesiones = await injuryRepository.find({
+        const lesiones = await injuryRepository.find({
           where: { jugador_id: player.id },
-          order: { fecha_registro: "DESC" },
+          order: { id: "DESC" },
         });
-
-        const necesitaActualizar = lesiones.length > 0 && !lesiones[0].analisis_comparativo.includes("###");
-
-        if (lesiones.length === 0 || necesitaActualizar) {
-          const lesionPorDefecto = lesiones.length > 0 ? lesiones[0].tipo_lesion : "Rotura fibrilar en el bíceps femoral (Isquiotibiales)";
-          const diasClubPorDefecto = lesiones.length > 0 ? lesiones[0].dias_estimados_club : 21;
-
-          try {
-            const aiAnalysis = await analyzeInjuryWithGemini(lesionPorDefecto, diasClubPorDefecto);
-
-            if (necesitaActualizar) {
-              const lesionExistente = lesiones[0];
-              lesionExistente.tiempo_clinico_ia = aiAnalysis.tiempo_clinico_ia || null;
-              lesionExistente.analisis_comparativo = aiAnalysis.analisis_comparativo || "";
-              await injuryRepository.save(lesionExistente);
-            } else {
-              const nuevaLesion = injuryRepository.create({
-                jugador_id: player.id,
-                tipo_lesion: lesionPorDefecto,
-                dias_estimados_club: diasClubPorDefecto,
-                tiempo_clinico_ia: aiAnalysis.tiempo_clinico_ia || null,
-                analisis_comparativo: aiAnalysis.analisis_comparativo || "",
-                estado: "En Recuperación",
-              });
-
-              const lesionGuardada = await injuryRepository.save(nuevaLesion);
-              lesiones = [lesionGuardada];
-            }
-          } catch (geminiError) {
-            console.error("Error al generar/actualizar análisis de Gemini:", geminiError);
-          }
-        }
 
         savedPlayers.push({
           id: player.id,
@@ -156,9 +137,6 @@ export const searchPlayer = async (req, res) => {
         });
       }
 
-      // Registrar búsqueda en historial
-      await registrarBusqueda(savedPlayers);
-
       return res.json({
         status: "success",
         count: savedPlayers.length,
@@ -166,19 +144,14 @@ export const searchPlayer = async (req, res) => {
       });
     }
 
-    // 2. Si no está en caché, llamar a la API externa de fútbol
-    console.log(`🌐 Jugador no encontrado en BD. Consultando API-Football...`);
     const apiResults = await searchPlayerFromAPI(name, league, season || 2024);
 
     if (!apiResults || apiResults.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "No se encontraron futbolistas con ese nombre" });
+      return res.status(404).json({ error: "No se encontraron futbolistas con ese nombre" });
     }
 
     const savedPlayers = [];
 
-    // 3. Procesar y guardar los resultados encontrados
     for (const item of apiResults) {
       const apiPlayer = item.player;
       const apiStats = item.statistics[0] || {};
@@ -188,7 +161,6 @@ export const searchPlayer = async (req, res) => {
         relations: ["club", "club.liga", "posicion"],
       });
 
-      // Resolver relaciones estructuradas
       const { dbClub, dbPosition } = await resolveRelations(
         apiStats.team?.name,
         apiStats.games?.position,
@@ -239,35 +211,10 @@ export const searchPlayer = async (req, res) => {
         }
       }
 
-      // Obtener el historial de lesiones en la BD
-      let lesiones = await injuryRepository.find({
+      const lesiones = await injuryRepository.find({
         where: { jugador_id: player.id },
-        order: { fecha_registro: "DESC" },
+        order: { id: "DESC" },
       });
-
-      // Si el jugador es nuevo y no tiene lesiones, creamos una por defecto
-      if (lesiones.length === 0) {
-        const lesionPorDefecto = "Rotura fibrilar en el bíceps femoral (Isquiotibiales)";
-        const diasClubPorDefecto = 21;
-
-        try {
-          const aiAnalysis = await analyzeInjuryWithGemini(lesionPorDefecto, diasClubPorDefecto);
-
-          const nuevaLesion = injuryRepository.create({
-            jugador_id: player.id,
-            tipo_lesion: lesionPorDefecto,
-            dias_estimados_club: diasClubPorDefecto,
-            tiempo_clinico_ia: aiAnalysis.tiempo_clinico_ia || null,
-            analisis_comparativo: aiAnalysis.analisis_comparativo || "",
-            estado: "En Recuperación",
-          });
-
-          const lesionGuardada = await injuryRepository.save(nuevaLesion);
-          lesiones = [lesionGuardada];
-        } catch (geminiError) {
-          console.error("Error al generar análisis automático de Gemini:", geminiError);
-        }
-      }
 
       savedPlayers.push({
         id: player.id,
@@ -285,9 +232,6 @@ export const searchPlayer = async (req, res) => {
         reporte_ia: lesiones[0] || null,
       });
     }
-
-    // Registrar búsqueda en historial
-    await registrarBusqueda(savedPlayers);
 
     return res.json({
       status: "success",

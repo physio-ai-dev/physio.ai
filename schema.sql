@@ -41,7 +41,7 @@ CREATE TABLE jugadores (
     club_fk INTEGER REFERENCES clubes(id) ON DELETE SET NULL,
     posicion_fk INTEGER REFERENCES posiciones(id) ON DELETE SET NULL,
     foto_url TEXT,
-    fecha_nacimiento VARCHAR(50),
+    fecha_nacimiento DATE,
     estatura VARCHAR(50),
     valor_mercado VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -184,16 +184,18 @@ EXECUTE FUNCTION log_auditoria_datos();
 CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE, -- Restricción UNIQUE y longitud estándar
-    password VARCHAR(255) NOT NULL,    -- Longitud adecuada para almacenar hashes (bcrypt/argon2)
-    dob DATE NOT NULL,                 -- Tipo DATE nativo para validación de fechas y cálculo de edad
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    dob DATE NOT NULL,
+    rol VARCHAR(50) DEFAULT 'usuario',
+    subscription_tier VARCHAR(50) DEFAULT 'free',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insertar usuario invitado por defecto
-INSERT INTO usuarios (username, email, password, dob) 
-VALUES ('Invitado', 'invitado@physio.ai', 'no-password-hash', '2000-01-01') 
+INSERT INTO usuarios (username, email, password, dob, rol, subscription_tier) 
+VALUES ('Invitado', 'invitado@physio.ai', 'no-password-hash', '2000-01-01', 'invitado', 'free') 
 ON CONFLICT (email) DO NOTHING;
 
 -- Tabla de Historial de Búsquedas
@@ -233,3 +235,10 @@ CREATE OR REPLACE TRIGGER trigger_nueva_busqueda
 AFTER INSERT ON busquedas
 FOR EACH ROW
 EXECUTE FUNCTION actualizar_top_busquedas();
+
+-- Tabla para limitar el uso a usuarios invitados y gratis
+CREATE TABLE limite_busquedas_anonimas (
+    identificador VARCHAR(255) PRIMARY KEY,
+    cantidad INTEGER DEFAULT 0,
+    ultima_busqueda DATE DEFAULT CURRENT_DATE
+);
