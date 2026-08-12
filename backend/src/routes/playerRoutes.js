@@ -13,7 +13,11 @@ import {
   getPlayerAge,
   getAuditLogs,
   getTopSearched,
+  recordPlayerSelection,
+  getOrGenerateAuditReport,
+  getSearchHistory,
 } from "../controllers/playerCrudController.js";
+import { authenticateToken, requireRole } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -29,11 +33,13 @@ router.get("/positions", getPositions);
 // Catálogo de Clubes (para filtrado dinámico)
 router.get("/clubs", getClubs);
 
-// Reportes Consolidados (SCRUM-53)
-router.get("/reports/summary", getInjuryReportSummary);
-router.get("/reports/audit", getAuditLogs);
-router.get("/reports/top-searched", getTopSearched);
+router.get("/reports/summary", authenticateToken, requireRole(["administrador", "auditor", "premium"]), getInjuryReportSummary);
+router.get("/reports/audit", authenticateToken, requireRole(["administrador", "auditor"]), getAuditLogs);
+router.get("/reports/top-searched", authenticateToken, requireRole(["administrador", "auditor", "usuario", "premium"]), getTopSearched);
+router.get("/history", authenticateToken, requireRole(["premium", "administrador"]), getSearchHistory);
 router.get("/:id/age", getPlayerAge);
+router.post("/:id/select", recordPlayerSelection);
+router.get("/:id/audit-report", getOrGenerateAuditReport);
 
 // Rutas de CRUD Local de futbolistas (SCRUM-44)
 router.post("/", createPlayer);

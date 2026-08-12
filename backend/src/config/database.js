@@ -6,6 +6,7 @@ import LeagueSchema from "../models/LeagueSchema.js";
 import ClubSchema from "../models/ClubSchema.js";
 import PositionSchema from "../models/PositionSchema.js";
 import UserSchema from "../models/UserSchema.js";
+import SearchLimitSchema from "../models/SearchLimitSchema.js";
 
 const AppDataSource = new DataSource({
   type: "postgres",
@@ -16,7 +17,15 @@ const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: false,
   logging: process.env.NODE_ENV === "development",
-  entities: [PlayerSchema, InjurySchema, LeagueSchema, ClubSchema, PositionSchema, UserSchema],
+  entities: [
+    PlayerSchema,
+    InjurySchema,
+    LeagueSchema,
+    ClubSchema,
+    PositionSchema,
+    UserSchema,
+    SearchLimitSchema,
+  ],
 });
 
 export default AppDataSource;

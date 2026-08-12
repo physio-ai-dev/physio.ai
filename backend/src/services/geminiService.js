@@ -31,6 +31,13 @@ export const analyzeInjuryWithGemini = async (tipoLesion, diasClub) => {
     },
   });
 
-  // El SDK garantiza que response.text contiene un JSON perfectamente válido que cumple con el schema
   return JSON.parse(response.text);
+};
+
+export const analyzePerformanceWithGemini = async (prompt) => {
+  const response = await ai.models.generateContent({
+    model: "gemini-3.5-flash",
+    contents: prompt,
+  });
+  return response.text;
 };

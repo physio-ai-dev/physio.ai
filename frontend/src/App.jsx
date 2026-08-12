@@ -1,7 +1,22 @@
 import { useState, useEffect } from "react";
 import { api } from "./api/backend";
 import { isAuthenticated, logoutUser } from "./api/authService";
-import { ThemeProvider, createTheme, CssBaseline, Container, Box, Typography, Divider } from "@mui/material";
+import {
+  ThemeProvider,
+  createTheme,
+  CssBaseline,
+  Container,
+  Box,
+  Typography,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+  Grid,
+} from "@mui/material";
 import Header from "./components/Header";
 import Disclaimer from "./components/Disclaimer";
 import SearchForm from "./components/SearchForm";
@@ -9,8 +24,15 @@ import ResultPanel from "./components/ResultPanel";
 import CreatePlayerPage from "./components/CreatePlayerPage";
 import LandingPage from "./components/LandingPage";
 import RegisterPage from "./components/RegisterPage";
+import PricingPage from "./components/PricingPage";
 import LoginModal from "./components/LoginModal";
 import DashboardPanel from "./components/DashboardPanel";
+<<<<<<< HEAD
+=======
+import DashboardPage from "./components/DashboardPage";
+import TopSearchedPage from "./components/TopSearchedPage";
+import SearchHistoryPage from "./components/SearchHistoryPage";
+>>>>>>> main
 
 const darkTheme = createTheme({
   palette: {
@@ -137,7 +159,7 @@ const renderLegibleReport = (text) => {
                     </strong>
                   ) : (
                     part
-                  )
+                  ),
                 )}
               </Typography>
             </Box>
@@ -197,7 +219,7 @@ const renderLegibleReport = (text) => {
                 </strong>
               ) : (
                 part
-              )
+              ),
             )}
           </Typography>
         );
@@ -239,24 +261,57 @@ function App() {
   const [page, setPage] = useState("search");
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLimitOpen, setIsLimitOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
   const [jugador, setJugador] = useState(null);
   const [resultadoFinal, setResultadoFinal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dashboardSelectedPlayer, setDashboardSelectedPlayer] = useState(null);
 
   useEffect(() => {
     const logged = isAuthenticated();
     setIsLoggedIn(logged);
     if (logged) {
       setShowLanding(false);
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          setCurrentUser(JSON.parse(userStr));
+        } catch (e) {}
+      }
+    }
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const paymentStatus = queryParams.get("payment");
+    if (paymentStatus === "success") {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userObj = JSON.parse(userStr);
+          userObj.subscription_tier = "premium";
+          localStorage.setItem("user", JSON.stringify(userObj));
+          setCurrentUser(userObj);
+        } catch (e) {}
+      }
+      alert(
+        "¡Suscripción PRO activada con éxito! Disfruta de búsquedas ilimitadas.",
+      );
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === "cancel") {
+      alert(
+        "El pago fue cancelado. Puedes adquirir el plan PRO en cualquier momento.",
+      );
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
   const handleLogout = () => {
     logoutUser();
     setIsLoggedIn(false);
+    setCurrentUser(null);
     setShowLanding(true);
     setPage("search");
     setJugador(null);
@@ -291,25 +346,44 @@ function App() {
         throw new Error("No se encontraron registros del futbolista.");
       }
     } catch (err) {
-      setError(err.message || "Error al buscar el futbolista.");
+      if (
+        err.message.includes("límite") ||
+        err.message.includes("429") ||
+        err.message.includes("limit_reached")
+      ) {
+        setIsLimitOpen(true);
+      } else {
+        setError(err.message || "Error al buscar el futbolista.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const seleccionarJugador = (datosCompletos) => {
-    setJugador({
-      id: datosCompletos.id,
-      nombre: datosCompletos.nombre,
-      equipo: datosCompletos.equipo,
-      foto: datosCompletos.foto_url,
-      edad: datosCompletos.edad,
-      fecha_nacimiento: datosCompletos.fecha_nacimiento,
-      estatura: datosCompletos.estatura,
-      valor_mercado: datosCompletos.valor_mercado,
-    });
-    setResultadoFinal(datosCompletos.reporte_ia);
-    setListaCoincidencias([]);
+  const seleccionarJugador = async (datosCompletos) => {
+    setLoading(true);
+    setError(null);
+    try {
+      api.registrarSeleccion(datosCompletos.id, "clinico").catch(console.error);
+      const resReport = await api.obtenerReporteClinico(datosCompletos.id);
+      const reportData = resReport.data;
+      setJugador({
+        id: datosCompletos.id,
+        nombre: datosCompletos.nombre,
+        equipo: datosCompletos.equipo,
+        foto: datosCompletos.foto_url,
+        edad: datosCompletos.edad,
+        fecha_nacimiento: datosCompletos.fecha_nacimiento,
+        estatura: datosCompletos.estatura,
+        valor_mercado: datosCompletos.valor_mercado,
+      });
+      setResultadoFinal(reportData);
+      setListaCoincidencias([]);
+    } catch (err) {
+      setError(err.message || "Error al generar el diagnóstico de la lesión.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const edadCalculada = jugador?.fecha_nacimiento
@@ -328,6 +402,7 @@ function App() {
         }}
       >
         {showLanding ? (
+<<<<<<< HEAD
           /* Renderiza únicamente la Landing Page */
           <LandingPage
   onStart={() => setIsLoginOpen(true)}
@@ -342,6 +417,16 @@ function App() {
 />
         ) : (
           /* Renderiza la app principal con el Header global */
+=======
+          <LandingPage
+            onStart={() => setShowLanding(false)}
+            onRegister={() => {
+              setShowLanding(false);
+              setPage("register");
+            }}
+          />
+        ) : (
+>>>>>>> main
           <>
             <Header
               onLogoClick={() => {
@@ -351,6 +436,8 @@ function App() {
                   setShowLanding(true);
                 }
                 setPage("search");
+                setJugador(null);
+                setResultadoFinal(null);
               }}
               onRegisterClick={() => {
                 setShowLanding(false);
@@ -359,10 +446,33 @@ function App() {
               onLoginClick={() => setIsLoginOpen(true)}
               onLogout={handleLogout}
               isLoggedIn={isLoggedIn}
+              user={currentUser}
+              onPricingClick={() => {
+                setShowLanding(false);
+                setPage("pricing");
+              }}
+              onSearchClick={() => {
+                setShowLanding(false);
+                setPage("search");
+                setJugador(null);
+                setResultadoFinal(null);
+              }}
+              onDashboardClick={() => {
+                setShowLanding(false);
+                setPage("dashboard");
+              }}
+              onTopSearchedClick={() => {
+                setShowLanding(false);
+                setPage("top-searched");
+              }}
+              onHistoryClick={() => {
+                setShowLanding(false);
+                setPage("history");
+              }}
             />
 
             <Container
-              maxWidth="md"
+              maxWidth={page === "dashboard" || page === "top-searched" || page === "history" ? "lg" : "md"}
               sx={{
                 py: 6,
                 flexGrow: 1,
@@ -380,6 +490,115 @@ function App() {
                     setPage("search");
                   }}
                   onRegisterSuccess={() => setPage("search")}
+                />
+              ) : page === "pricing" ? (
+                <PricingPage
+                  onGoBack={() => {
+                    if (!isLoggedIn) setShowLanding(true);
+                    setPage("search");
+                  }}
+                  currentUser={currentUser}
+                />
+              ) : page === "dashboard" ? (
+                <DashboardPage
+                  initialPlayer={dashboardSelectedPlayer}
+                  onResetPlayer={() => setDashboardSelectedPlayer(null)}
+                />
+              ) : page === "top-searched" ? (
+                <TopSearchedPage
+                  onSelectPlayerClinical={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      api.registrarSeleccion(player.id, "clinico").catch(console.error);
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      const resReport = await api.obtenerReporteClinico(player.id);
+                      setJugador({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto: playerData.foto_url,
+                        fecha_nacimiento: playerData.fecha_nacimiento,
+                        estatura: playerData.estatura,
+                        valor_mercado: playerData.valor_mercado,
+                      });
+                      setResultadoFinal(resReport.data);
+                      setPage("search");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil clínico.");
+                      setPage("search");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  onSelectPlayerPerformance={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      setDashboardSelectedPlayer({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto_url: playerData.foto_url,
+                      });
+                      setPage("dashboard");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil de rendimiento.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                />
+              ) : page === "history" ? (
+                <SearchHistoryPage
+                  onSelectPlayerClinical={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      api.registrarSeleccion(player.id, "clinico").catch(console.error);
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      const resReport = await api.obtenerReporteClinico(player.id);
+                      setJugador({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto: playerData.foto_url,
+                        fecha_nacimiento: playerData.fecha_nacimiento,
+                        estatura: playerData.estatura,
+                        valor_mercado: playerData.valor_mercado,
+                      });
+                      setResultadoFinal(resReport.data);
+                      setPage("search");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil clínico.");
+                      setPage("search");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  onSelectPlayerPerformance={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      setDashboardSelectedPlayer({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto_url: playerData.foto_url,
+                      });
+                      setPage("dashboard");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil de rendimiento.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
                 />
               ) : resultadoFinal ? (
                 <ResultPanel
@@ -410,6 +629,7 @@ function App() {
                     onSubmit={handleBuscarYAnalizar}
                     onSelectPlayer={seleccionarJugador}
                     onNavigateToCreate={() => setPage("create")}
+                    isAdmin={currentUser?.role === "administrador"}
                   />
 
                   {/* SCRUM-80 / SCRUM-83: Renderiza el Dashboard del Jugador cuando está seleccionado */}
@@ -432,8 +652,91 @@ function App() {
             setIsLoggedIn(true);
             setShowLanding(false);
             setPage("search");
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+              try {
+                setCurrentUser(JSON.parse(userStr));
+              } catch (e) {}
+            }
           }}
         />
+
+        <Dialog
+          open={isLimitOpen}
+          onClose={() => setIsLimitOpen(false)}
+          PaperProps={{
+            sx: {
+              bgcolor: "rgba(11, 21, 40, 0.95)",
+              backdropFilter: "blur(16px)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: 4,
+              p: 2,
+            },
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 900, color: "primary.light" }}>
+            Límite de Búsquedas Alcanzado
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText
+              sx={{ color: "text.secondary", fontWeight: 500 }}
+            >
+              {isLoggedIn
+                ? "Has alcanzado el límite de 3 búsquedas diarias permitidas para tu cuenta gratuita. ¡Hazte PRO para obtener búsquedas ilimitadas!"
+                : "Has alcanzado el límite de 3 búsquedas diarias permitidas para usuarios invitados. Registra una cuenta nueva o inicia sesión para continuar."}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ gap: 1.5, px: 3, pb: 2 }}>
+            <Button
+              variant="outlined"
+              color="inherit"
+              onClick={() => setIsLimitOpen(false)}
+              sx={{ borderRadius: 3, px: 3 }}
+            >
+              Cerrar
+            </Button>
+            {!isLoggedIn ? (
+              <>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => {
+                    setIsLimitOpen(false);
+                    setIsLoginOpen(true);
+                  }}
+                  sx={{ borderRadius: 3, px: 3 }}
+                >
+                  Iniciar Sesión
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    setIsLimitOpen(false);
+                    setShowLanding(false);
+                    setPage("register");
+                  }}
+                  sx={{ borderRadius: 3, px: 3 }}
+                >
+                  Registrarse Gratis
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setIsLimitOpen(false);
+                  setShowLanding(false);
+                  setPage("pricing");
+                }}
+                sx={{ borderRadius: 3, px: 3 }}
+              >
+                Explorar Premium
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
       </Box>
     </ThemeProvider>
   );
