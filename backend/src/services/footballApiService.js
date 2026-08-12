@@ -49,12 +49,12 @@ export const searchPlayerFromAPI = async (playerName, league, season = 2024) => 
         const errorMsg = Array.isArray(data.errors) 
           ? data.errors.join(", ") 
           : Object.values(data.errors).join(", ");
-        console.error(`🚨 Error de API-Football en liga ${leg}:`, errorMsg);
+        console.error(`Error de API-Football en liga ${leg}:`, errorMsg);
         throw new Error(`API de Fútbol: ${errorMsg}`);
       }
 
       if (data.response && data.response.length > 0) {
-        console.log(`✅ Jugador encontrado en la liga ${leg}!`);
+        console.log(`Jugador encontrado en la liga ${leg}`);
         return data.response;
       }
     } catch (err) {
