@@ -1,12 +1,8 @@
 const BASE_URL = "http://localhost:4000/api";
 
-// Helper unificado para obtener cabeceras (incluye JWT Token y Content-Type cuando aplica)
 const getHeaders = (extraHeaders = {}) => {
   const token = localStorage.getItem("token") || "";
-  const headers = {
-    "Content-Type": "application/json",
-    ...extraHeaders,
-  };
+  const headers = { ...extraHeaders };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -43,7 +39,7 @@ export const api = {
   analizarLesion: async (jugadorId, tipoLesion, diasClub) => {
     const response = await fetch(`${BASE_URL}/ai/analyze`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         jugador_id: jugadorId,
         tipo_lesion: tipoLesion,
@@ -73,7 +69,7 @@ export const api = {
   crearJugadorLocal: async (datos) => {
     const response = await fetch(`${BASE_URL}/players`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(datos),
     });
     if (!response.ok) {
@@ -111,7 +107,7 @@ export const api = {
   registrarUsuario: async (datos) => {
     const response = await fetch(`${BASE_URL}/auth/register`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(datos),
     });
     if (!response.ok) {
@@ -181,7 +177,7 @@ export const api = {
   obtenerAnalisisIA: async (jugadorId) => {
     const response = await fetch(`${BASE_URL}/analysis`, {
       method: "POST",
-      headers: getHeaders(),
+      headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ id: jugadorId }),
     });
     if (!response.ok) {

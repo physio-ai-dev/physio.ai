@@ -31,7 +31,7 @@ const apiLimiter = rateLimit({
 // Aplica el límite a todas las rutas que empiezan con /api/
 app.use("/api/", apiLimiter);
 
-// Ruta de prueba de estado
+// Route de prueba de estado
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
@@ -45,17 +45,14 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stripe", stripeRoutes);
 
-// Rutas del Dashboard
 app.get("/api/stats", authenticateToken, obtenerEstadisticas);
 app.post("/api/analysis", authenticateToken, obtenerAnalisisIA);
 
-// ==========================================
-// SCRUM-90 & 91: Manejador Global de Errores
-// ==========================================
+// SCRUM-90 & 91: Manejador Global de Error
 app.use((err, req, res, next) => {
-  // Solo imprime la traza detallada en consola si no estás en producción
+  // Solo imprime la traza detallada en consola si estás en desarrollo
   if (process.env.NODE_ENV !== "production") {
-    console.error("Error interno:", err);
+    console.error("❌ Error interno:", err);
   }
 
   // Respuesta limpia para el usuario sin exponer credenciales ni código interno
@@ -64,17 +61,15 @@ app.use((err, req, res, next) => {
     message: err.message || "Ocurrió un error interno en el servidor.",
   });
 });
-
-// Inicialización de PostgreSQL y Servidor
 AppDataSource.initialize()
   .then(() => {
-    console.log("Base de datos PostgreSQL conectada exitosamente");
+    console.log("✅ Base de datos PostgreSQL conectada exitosamente");
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
-      console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
+      console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("Error al conectar con la base de datos:", error);
+    console.error("❌ Error al conectar con la base de datos:", error);
     process.exit(1);
   });

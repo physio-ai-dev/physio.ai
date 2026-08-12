@@ -18,7 +18,7 @@ import {
   Grid,
 } from "@mui/material";
 import Header from "./components/Header";
-import Disclaimer from "./components/Disclaimer";
+import Disclaimer from "./components/Disclaimer/Disclaimer";
 import SearchForm from "./components/SearchForm";
 import ResultPanel from "./components/ResultPanel";
 import CreatePlayerPage from "./components/CreatePlayerPage";
@@ -259,8 +259,6 @@ function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLimitOpen, setIsLimitOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [paymentMessage, setPaymentMessage] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
@@ -295,12 +293,14 @@ function App() {
           setCurrentUser(userObj);
         } catch (e) {}
       }
-      setPaymentMessage("¡Suscripción PRO activada con éxito! Disfruta de búsquedas ilimitadas.");
-      setPaymentDialogOpen(true);
+      alert(
+        "¡Suscripción PRO activada con éxito! Disfruta de búsquedas ilimitadas.",
+      );
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (paymentStatus === "cancel") {
-      setPaymentMessage("El pago fue cancelado. Puedes adquirir el plan PRO en cualquier momento.");
-      setPaymentDialogOpen(true);
+      alert(
+        "El pago fue cancelado. Puedes adquirir el plan PRO en cualquier momento.",
+      );
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -400,7 +400,7 @@ function App() {
       >
         {showLanding ? (
           <LandingPage
-            onStart={() => setShowLanding(false)}
+            onStart={() => setIsLoginOpen(true)}
             onRegister={() => {
               setShowLanding(false);
               setPage("register");
@@ -616,6 +616,7 @@ function App() {
                     isAdmin={currentUser?.role === "administrador"}
                   />
 
+                  {/* SCRUM-80 / SCRUM-83: Renderiza el Dashboard del Jugador cuando está seleccionado */}
                   {jugador && (
                     <Box sx={{ mt: 2 }}>
                       <DashboardPanel jugadorId={jugador.id} />
@@ -643,34 +644,6 @@ function App() {
             }
           }}
         />
-
-        <Dialog
-          open={paymentDialogOpen}
-          onClose={() => setPaymentDialogOpen(false)}
-          PaperProps={{
-            sx: {
-              bgcolor: "rgba(11, 21, 40, 0.95)",
-              backdropFilter: "blur(16px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: 4,
-              p: 2,
-            },
-          }}
-        >
-          <DialogTitle sx={{ fontWeight: 900, color: "primary.light" }}>
-            Información de Pago
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText sx={{ color: "text.secondary", fontWeight: 500 }}>
-              {paymentMessage}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions sx={{ gap: 1.5, px: 3, pb: 2 }}>
-            <Button variant="contained" color="primary" onClick={() => setPaymentDialogOpen(false)} sx={{ borderRadius: 3, px: 3 }}>
-              Cerrar
-            </Button>
-          </DialogActions>
-        </Dialog>
 
         <Dialog
           open={isLimitOpen}
