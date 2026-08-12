@@ -1,8 +1,12 @@
 const BASE_URL = "http://localhost:4000/api";
 
+// Helper unificado para obtener cabeceras (incluye JWT Token y Content-Type cuando aplica)
 const getHeaders = (extraHeaders = {}) => {
   const token = localStorage.getItem("token") || "";
-  const headers = { ...extraHeaders };
+  const headers = {
+    "Content-Type": "application/json",
+    ...extraHeaders,
+  };
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -39,7 +43,7 @@ export const api = {
   analizarLesion: async (jugadorId, tipoLesion, diasClub) => {
     const response = await fetch(`${BASE_URL}/ai/analyze`, {
       method: "POST",
-      headers: getHeaders({ "Content-Type": "application/json" }),
+      headers: getHeaders(),
       body: JSON.stringify({
         jugador_id: jugadorId,
         tipo_lesion: tipoLesion,
@@ -69,7 +73,7 @@ export const api = {
   crearJugadorLocal: async (datos) => {
     const response = await fetch(`${BASE_URL}/players`, {
       method: "POST",
-      headers: getHeaders({ "Content-Type": "application/json" }),
+      headers: getHeaders(),
       body: JSON.stringify(datos),
     });
     if (!response.ok) {
@@ -107,7 +111,7 @@ export const api = {
   registrarUsuario: async (datos) => {
     const response = await fetch(`${BASE_URL}/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getHeaders(),
       body: JSON.stringify(datos),
     });
     if (!response.ok) {
@@ -160,5 +164,36 @@ export const api = {
       throw new Error(errData.error || "Error al iniciar sesión de pago con Stripe.");
     }
     return response.json();
+  },
+
+  // SCRUM-81: Obtener estadísticas numéricas con JWT
+  obtenerEstadisticas: async (jugadorId) => {
+    const response = await fetch(`${BASE_URL}/stats?id=${jugadorId}`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener las estadísticas.");
+    }
+
+    return await response.json();
+  },
+
+  // SCRUM-81: Obtener análisis predictivo de IA con JWT
+  obtenerAnalisisIA: async (jugadorId) => {
+    const response = await fetch(`${BASE_URL}/analysis`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ id: jugadorId }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al generar el análisis de la IA.");
+    }
+
+    return await response.json();
   },
 };

@@ -25,6 +25,7 @@ import LandingPage from "./components/LandingPage";
 import RegisterPage from "./components/RegisterPage";
 import PricingPage from "./components/PricingPage";
 import LoginModal from "./components/LoginModal";
+import DashboardPanel from "./components/DashboardPanel";
 
 const darkTheme = createTheme({
   palette: {
@@ -254,6 +255,8 @@ function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLimitOpen, setIsLimitOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [listaCoincidencias, setListaCoincidencias] = useState([]);
@@ -287,14 +290,12 @@ function App() {
           setCurrentUser(userObj);
         } catch (e) {}
       }
-      alert(
-        "¡Suscripción PRO activada con éxito! Disfruta de búsquedas ilimitadas.",
-      );
+      setPaymentMessage("¡Suscripción PRO activada con éxito! Disfruta de búsquedas ilimitadas.");
+      setPaymentDialogOpen(true);
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (paymentStatus === "cancel") {
-      alert(
-        "El pago fue cancelado. Puedes adquirir el plan PRO en cualquier momento.",
-      );
+      setPaymentMessage("El pago fue cancelado. Puedes adquirir el plan PRO en cualquier momento.");
+      setPaymentDialogOpen(true);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -399,6 +400,10 @@ function App() {
               setShowLanding(false);
               setPage("register");
             }}
+            onGoSearch={() => {
+              setShowLanding(false);
+              setPage("search");
+            }}
           />
         ) : (
           <>
@@ -483,6 +488,12 @@ function App() {
                     onSelectPlayer={seleccionarJugador}
                     onNavigateToCreate={() => setPage("create")}
                   />
+
+                  {jugador && (
+                    <Box sx={{ mt: 2 }}>
+                      <DashboardPanel jugadorId={jugador.id} />
+                    </Box>
+                  )}
                 </>
               )}
             </Container>
@@ -505,6 +516,34 @@ function App() {
             }
           }}
         />
+
+        <Dialog
+          open={paymentDialogOpen}
+          onClose={() => setPaymentDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              bgcolor: "rgba(11, 21, 40, 0.95)",
+              backdropFilter: "blur(16px)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              borderRadius: 4,
+              p: 2,
+            },
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 900, color: "primary.light" }}>
+            Información de Pago
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ color: "text.secondary", fontWeight: 500 }}>
+              {paymentMessage}
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ gap: 1.5, px: 3, pb: 2 }}>
+            <Button variant="contained" color="primary" onClick={() => setPaymentDialogOpen(false)} sx={{ borderRadius: 3, px: 3 }}>
+              Cerrar
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Dialog
           open={isLimitOpen}
