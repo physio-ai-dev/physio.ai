@@ -27,9 +27,12 @@ import RegisterPage from "./components/RegisterPage";
 import PricingPage from "./components/PricingPage";
 import LoginModal from "./components/LoginModal";
 import DashboardPanel from "./components/DashboardPanel";
+<<<<<<< HEAD
+=======
 import DashboardPage from "./components/DashboardPage";
 import TopSearchedPage from "./components/TopSearchedPage";
 import SearchHistoryPage from "./components/SearchHistoryPage";
+>>>>>>> main
 
 const darkTheme = createTheme({
   palette: {
@@ -399,6 +402,22 @@ function App() {
         }}
       >
         {showLanding ? (
+<<<<<<< HEAD
+          /* Renderiza únicamente la Landing Page */
+          <LandingPage
+  onStart={() => setIsLoginOpen(true)}
+  onRegister={() => {
+    setShowLanding(false);
+    setPage("register");
+  }}
+  onGoSearch={() => {
+    setShowLanding(false);
+    setPage("search");
+  }}
+/>
+        ) : (
+          /* Renderiza la app principal con el Header global */
+=======
           <LandingPage
             onStart={() => setShowLanding(false)}
             onRegister={() => {
@@ -407,6 +426,7 @@ function App() {
             }}
           />
         ) : (
+>>>>>>> main
           <>
             <Header
               onLogoClick={() => {
@@ -611,6 +631,13 @@ function App() {
                     onNavigateToCreate={() => setPage("create")}
                     isAdmin={currentUser?.role === "administrador"}
                   />
+
+                  {/* SCRUM-80 / SCRUM-83: Renderiza el Dashboard del Jugador cuando está seleccionado */}
+                  {jugador && (
+                    <Box sx={{ mt: 2 }}>
+                      <DashboardPanel jugadorId={jugador.id} />
+                    </Box>
+                  )}
                 </>
               )}
             </Container>

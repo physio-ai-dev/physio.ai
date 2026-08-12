@@ -58,8 +58,7 @@ const darkTheme = createTheme({
   },
 });
 
-export default function LandingPage({ onStart, onRegister }) {
-  
+export default function LandingPage({ onStart, onRegister, onGoSearch }) {
   /* ==========================================================================
      SCRUM-57: Datos de los bloques informativos inferiores (Características Premium)
      - Auditoría médica por IA
@@ -226,13 +225,13 @@ export default function LandingPage({ onStart, onRegister }) {
               al criterio clínico sustentado por IA.
             </Typography>
 
-            {/* Botón principal de CTA */}
+            {/* Botón principal de CTA - Acceso Directo al Buscador */}
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ pt: 2 }}>
               <Button
                 variant="contained"
                 color="primary"
                 size="large"
-                onClick={onStart}
+                onClick={onGoSearch || onStart}
                 endIcon={<ArrowForwardIcon />}
                 sx={{
                   px: 4,
