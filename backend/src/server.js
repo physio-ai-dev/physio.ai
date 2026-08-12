@@ -7,6 +7,8 @@ import playerRoutes from "./routes/playerRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
+import { obtenerEstadisticas, obtenerAnalisisIA } from "./controllers/dashboardController.js";
+import { authenticateToken } from "./middleware/authMiddleware.js";
 
 const app = express();
 
@@ -29,7 +31,7 @@ const apiLimiter = rateLimit({
 // Aplica el límite a todas las rutas que empiezan con /api/
 app.use("/api/", apiLimiter);
 
-// Route de prueba de estado
+// Ruta de prueba de estado
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
@@ -43,10 +45,15 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stripe", stripeRoutes);
 
-// SCRUM-90 & 91: Manejador Global de Error
+// Rutas del Dashboard
+app.get("/api/stats", authenticateToken, obtenerEstadisticas);
+app.post("/api/analysis", authenticateToken, obtenerAnalisisIA);
 
+// ==========================================
+// SCRUM-90 & 91: Manejador Global de Errores
+// ==========================================
 app.use((err, req, res, next) => {
-  // Solo imprime la traza detallada en consola si estás en desarrollo
+  // Solo imprime la traza detallada en consola si no estás en producción
   if (process.env.NODE_ENV !== "production") {
     console.error("Error interno:", err);
   }

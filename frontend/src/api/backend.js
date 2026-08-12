@@ -121,7 +121,7 @@ export const api = {
     return response.json();
   },
 
-  registrarSeleccion: async (id) => {
+  registrarSeleccion: async (id, tipo = "clinico") => {
     let userEmail = "";
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -130,7 +130,7 @@ export const api = {
         userEmail = userObj.email || "";
       } catch (e) {}
     }
-    const response = await fetch(`${BASE_URL}/players/${id}/select`, {
+    const response = await fetch(`${BASE_URL}/players/${id}/select?tipo=${tipo}`, {
       method: "POST",
       headers: getHeaders({
         "x-user-email": userEmail,
@@ -166,34 +166,61 @@ export const api = {
     return response.json();
   },
 
-  // SCRUM-81: Obtener estadísticas numéricas con JWT
   obtenerEstadisticas: async (jugadorId) => {
     const response = await fetch(`${BASE_URL}/stats?id=${jugadorId}`, {
       method: "GET",
       headers: getHeaders(),
     });
-
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error || "Error al obtener las estadísticas.");
     }
-
-    return await response.json();
+    return response.json();
   },
 
-  // SCRUM-81: Obtener análisis predictivo de IA con JWT
   obtenerAnalisisIA: async (jugadorId) => {
     const response = await fetch(`${BASE_URL}/analysis`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ id: jugadorId }),
     });
-
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
       throw new Error(errData.error || "Error al generar el análisis de la IA.");
     }
+    return response.json();
+  },
 
-    return await response.json();
+  obtenerTopBuscados: async () => {
+    const response = await fetch(`${BASE_URL}/players/reports/top-searched`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener el top de búsquedas.");
+    }
+    return response.json();
+  },
+
+  obtenerDetallesJugador: async (id) => {
+    const response = await fetch(`${BASE_URL}/players/${id}`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener los detalles del futbolista.");
+    }
+    return response.json();
+  },
+
+  obtenerHistorialBusquedas: async () => {
+    const response = await fetch(`${BASE_URL}/players/history`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener el historial de búsquedas.");
+    }
+    return response.json();
   },
 };

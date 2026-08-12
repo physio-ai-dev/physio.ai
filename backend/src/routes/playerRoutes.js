@@ -15,6 +15,7 @@ import {
   getTopSearched,
   recordPlayerSelection,
   getOrGenerateAuditReport,
+  getSearchHistory,
 } from "../controllers/playerCrudController.js";
 import { authenticateToken, requireRole } from "../middleware/authMiddleware.js";
 
@@ -35,6 +36,7 @@ router.get("/clubs", getClubs);
 router.get("/reports/summary", authenticateToken, requireRole(["administrador", "auditor", "premium"]), getInjuryReportSummary);
 router.get("/reports/audit", authenticateToken, requireRole(["administrador", "auditor"]), getAuditLogs);
 router.get("/reports/top-searched", authenticateToken, requireRole(["administrador", "auditor", "usuario", "premium"]), getTopSearched);
+router.get("/history", authenticateToken, requireRole(["premium", "administrador"]), getSearchHistory);
 router.get("/:id/age", getPlayerAge);
 router.post("/:id/select", recordPlayerSelection);
 router.get("/:id/audit-report", getOrGenerateAuditReport);
