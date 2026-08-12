@@ -203,6 +203,7 @@ CREATE TABLE IF NOT EXISTS busquedas (
     id SERIAL PRIMARY KEY,
     usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
     jugador_id INTEGER REFERENCES jugadores(id) ON DELETE CASCADE,
+    tipo_buscador VARCHAR(50) DEFAULT 'clinico',
     fecha_busqueda TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -242,3 +243,19 @@ CREATE TABLE limite_busquedas_anonimas (
     cantidad INTEGER DEFAULT 0,
     ultima_busqueda DATE DEFAULT CURRENT_DATE
 );
+
+-- Vista del Historial de Búsquedas Consolidado
+CREATE OR REPLACE VIEW vista_historial_busquedas AS
+SELECT
+    b.id,
+    b.usuario_id,
+    u.email AS usuario_email,
+    b.jugador_id,
+    j.nombre AS jugador_nombre,
+    c.nombre AS equipo,
+    b.tipo_buscador,
+    b.fecha_busqueda
+FROM busquedas b
+JOIN usuarios u ON u.id = b.usuario_id
+JOIN jugadores j ON j.id = b.jugador_id
+LEFT JOIN clubes c ON j.club_fk = c.id;

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -12,8 +13,12 @@ import {
   ListItemAvatar,
   Avatar,
   ListItemText,
+  InputAdornment,
 } from "@mui/material";
-import { Search as SearchIcon, Person as PersonIcon } from "@mui/icons-material";
+import {
+  Search as SearchIcon,
+  Person as PersonIcon,
+} from "@mui/icons-material";
 
 export default function SearchForm({
   busqueda,
@@ -25,37 +30,71 @@ export default function SearchForm({
   onSubmit,
   onSelectPlayer,
   onNavigateToCreate,
+  isAdmin,
 }) {
+  const [openCoincidencias, setOpenCoincidencias] = useState(false);
+
+  useEffect(() => {
+    if (listaCoincidencias.length > 0) {
+      setOpenCoincidencias(true);
+    } else {
+      setOpenCoincidencias(false);
+    }
+  }, [listaCoincidencias]);
+
+  const handleCloseCoincidencias = () => {
+    setOpenCoincidencias(false);
+  };
+
   return (
-    <>
-      {/* Formulario de Búsqueda */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        width: "100%",
+      }}
+    >
       <Box
         component="form"
         onSubmit={onSubmit}
         sx={{
           display: "flex",
-          gap: 2,
-          maxWidth: "600px",
+          gap: 1.5,
           width: "100%",
-          mx: "auto",
+          flexDirection: { xs: "column", sm: "row" },
         }}
       >
         <TextField
           fullWidth
-          variant="outlined"
-          placeholder="Busca un futbolista (Ej. Lamine Yamal, Kylian Mbappe)..."
+          placeholder="Ej: Vinicius Junior, Kylian Mbappe, Erling Haaland, Lamine Yamal..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
-            ),
+          disabled={loading}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "text.secondary" }} />
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: 4,
+                bgcolor: "rgba(255, 255, 255, 0.02)",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(255, 255, 255, 0.08)",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "rgba(255, 255, 255, 0.15)",
+                },
+              },
+            },
           }}
         />
         <Button
-          type="submit"
           variant="contained"
           color="primary"
+          type="submit"
           disabled={loading}
           sx={{ px: 4 }}
         >
@@ -64,7 +103,7 @@ export default function SearchForm({
       </Box>
 
       {/* Botón secundario para registrar jugador local */}
-      {!loading && (
+      {!loading && isAdmin && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
           <Button
             variant="outlined"
@@ -80,7 +119,7 @@ export default function SearchForm({
               "&:hover": {
                 borderColor: "primary.main",
                 bgcolor: "rgba(16, 185, 129, 0.08)",
-              }
+              },
             }}
           >
             + Registrar Futbolista Local
@@ -105,8 +144,7 @@ export default function SearchForm({
             color="primary"
             sx={{ fontWeight: 700 }}
           >
-            Consultando base de datos y solicitando criterio médico a
-            Gemini...
+            Consultando base de datos y solicitando criterio médico a Gemini...
           </Typography>
         </Box>
       )}
@@ -145,8 +183,8 @@ export default function SearchForm({
             variant="subtitle2"
             sx={{ mb: 2, fontWeight: "bold", color: "primary.light" }}
           >
-            🔍 Se encontraron {listaCoincidencias.length} futbolistas con
-            ese nombre. Selecciona el correcto:
+            🔍 Se encontraron {listaCoincidencias.length} futbolistas con ese
+            nombre. Selecciona el correcto:
           </Typography>
           <List>
             {listaCoincidencias.map((player) => (
@@ -183,6 +221,6 @@ export default function SearchForm({
           </List>
         </Paper>
       )}
-    </>
+    </Box>
   );
 }

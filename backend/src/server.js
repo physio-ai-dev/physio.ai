@@ -6,6 +6,8 @@ import playerRoutes from "./routes/playerRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
+import { obtenerEstadisticas, obtenerAnalisisIA } from "./controllers/dashboardController.js";
+import { authenticateToken } from "./middleware/authMiddleware.js";
 
 const app = express();
 
@@ -24,6 +26,9 @@ app.use("/api/players", playerRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stripe", stripeRoutes);
+
+app.get("/api/stats", authenticateToken, obtenerEstadisticas);
+app.post("/api/analysis", authenticateToken, obtenerAnalisisIA);
 
 AppDataSource.initialize()
   .then(() => {

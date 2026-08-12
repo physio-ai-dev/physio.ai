@@ -15,6 +15,7 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Grid,
 } from "@mui/material";
 import Header from "./components/Header";
 import Disclaimer from "./components/Disclaimer";
@@ -25,6 +26,10 @@ import LandingPage from "./components/LandingPage";
 import RegisterPage from "./components/RegisterPage";
 import PricingPage from "./components/PricingPage";
 import LoginModal from "./components/LoginModal";
+import DashboardPanel from "./components/DashboardPanel";
+import DashboardPage from "./components/DashboardPage";
+import TopSearchedPage from "./components/TopSearchedPage";
+import SearchHistoryPage from "./components/SearchHistoryPage";
 
 const darkTheme = createTheme({
   palette: {
@@ -261,6 +266,7 @@ function App() {
   const [resultadoFinal, setResultadoFinal] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dashboardSelectedPlayer, setDashboardSelectedPlayer] = useState(null);
 
   useEffect(() => {
     const logged = isAuthenticated();
@@ -355,7 +361,7 @@ function App() {
     setLoading(true);
     setError(null);
     try {
-      api.registrarSeleccion(datosCompletos.id).catch(console.error);
+      api.registrarSeleccion(datosCompletos.id, "clinico").catch(console.error);
       const resReport = await api.obtenerReporteClinico(datosCompletos.id);
       const reportData = resReport.data;
       setJugador({
@@ -410,6 +416,8 @@ function App() {
                   setShowLanding(true);
                 }
                 setPage("search");
+                setJugador(null);
+                setResultadoFinal(null);
               }}
               onRegisterClick={() => {
                 setShowLanding(false);
@@ -423,10 +431,28 @@ function App() {
                 setShowLanding(false);
                 setPage("pricing");
               }}
+              onSearchClick={() => {
+                setShowLanding(false);
+                setPage("search");
+                setJugador(null);
+                setResultadoFinal(null);
+              }}
+              onDashboardClick={() => {
+                setShowLanding(false);
+                setPage("dashboard");
+              }}
+              onTopSearchedClick={() => {
+                setShowLanding(false);
+                setPage("top-searched");
+              }}
+              onHistoryClick={() => {
+                setShowLanding(false);
+                setPage("history");
+              }}
             />
 
             <Container
-              maxWidth="md"
+              maxWidth={page === "dashboard" || page === "top-searched" || page === "history" ? "lg" : "md"}
               sx={{
                 py: 6,
                 flexGrow: 1,
@@ -452,6 +478,107 @@ function App() {
                     setPage("search");
                   }}
                   currentUser={currentUser}
+                />
+              ) : page === "dashboard" ? (
+                <DashboardPage
+                  initialPlayer={dashboardSelectedPlayer}
+                  onResetPlayer={() => setDashboardSelectedPlayer(null)}
+                />
+              ) : page === "top-searched" ? (
+                <TopSearchedPage
+                  onSelectPlayerClinical={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      api.registrarSeleccion(player.id, "clinico").catch(console.error);
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      const resReport = await api.obtenerReporteClinico(player.id);
+                      setJugador({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto: playerData.foto_url,
+                        fecha_nacimiento: playerData.fecha_nacimiento,
+                        estatura: playerData.estatura,
+                        valor_mercado: playerData.valor_mercado,
+                      });
+                      setResultadoFinal(resReport.data);
+                      setPage("search");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil clínico.");
+                      setPage("search");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  onSelectPlayerPerformance={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      setDashboardSelectedPlayer({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto_url: playerData.foto_url,
+                      });
+                      setPage("dashboard");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil de rendimiento.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                />
+              ) : page === "history" ? (
+                <SearchHistoryPage
+                  onSelectPlayerClinical={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      api.registrarSeleccion(player.id, "clinico").catch(console.error);
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      const resReport = await api.obtenerReporteClinico(player.id);
+                      setJugador({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto: playerData.foto_url,
+                        fecha_nacimiento: playerData.fecha_nacimiento,
+                        estatura: playerData.estatura,
+                        valor_mercado: playerData.valor_mercado,
+                      });
+                      setResultadoFinal(resReport.data);
+                      setPage("search");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil clínico.");
+                      setPage("search");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  onSelectPlayerPerformance={async (player) => {
+                    setLoading(true);
+                    setError(null);
+                    try {
+                      const resDetails = await api.obtenerDetallesJugador(player.id);
+                      const playerData = resDetails.data;
+                      setDashboardSelectedPlayer({
+                        id: playerData.id,
+                        nombre: playerData.nombre,
+                        equipo: playerData.equipo,
+                        foto_url: playerData.foto_url,
+                      });
+                      setPage("dashboard");
+                    } catch (err) {
+                      setError(err.message || "Error al abrir el perfil de rendimiento.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
                 />
               ) : resultadoFinal ? (
                 <ResultPanel
@@ -482,6 +609,7 @@ function App() {
                     onSubmit={handleBuscarYAnalizar}
                     onSelectPlayer={seleccionarJugador}
                     onNavigateToCreate={() => setPage("create")}
+                    isAdmin={currentUser?.role === "administrador"}
                   />
                 </>
               )}
