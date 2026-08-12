@@ -15,7 +15,10 @@ import {
   ListItemText,
   InputAdornment,
 } from "@mui/material";
-import { Search as SearchIcon, Person as PersonIcon } from "@mui/icons-material";
+import {
+  Search as SearchIcon,
+  Person as PersonIcon,
+} from "@mui/icons-material";
 
 export default function SearchForm({
   busqueda,
@@ -64,7 +67,7 @@ export default function SearchForm({
       >
         <TextField
           fullWidth
-          placeholder="Ej: Lamine Yamal..."
+          placeholder="Ej: Vinicius Junior, Kylian Mbappe, Erling Haaland, Lamine Yamal..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           disabled={loading}
@@ -116,7 +119,7 @@ export default function SearchForm({
               "&:hover": {
                 borderColor: "primary.main",
                 bgcolor: "rgba(16, 185, 129, 0.08)",
-              }
+              },
             }}
           >
             + Registrar Futbolista Local
@@ -141,8 +144,7 @@ export default function SearchForm({
             color="primary"
             sx={{ fontWeight: 700 }}
           >
-            Consultando base de datos y solicitando criterio médico a
-            Gemini...
+            Consultando base de datos y solicitando criterio médico a Gemini...
           </Typography>
         </Box>
       )}
@@ -181,8 +183,8 @@ export default function SearchForm({
             variant="subtitle2"
             sx={{ mb: 2, fontWeight: "bold", color: "primary.light" }}
           >
-            🔍 Se encontraron {listaCoincidencias.length} futbolistas con
-            ese nombre. Selecciona el correcto:
+            🔍 Se encontraron {listaCoincidencias.length} futbolistas con ese
+            nombre. Selecciona el correcto:
           </Typography>
           <List>
             {listaCoincidencias.map((player) => (
