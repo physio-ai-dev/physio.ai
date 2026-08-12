@@ -48,7 +48,7 @@ app.use("/api/stripe", stripeRoutes);
 app.use((err, req, res, next) => {
   // Solo imprime la traza detallada en consola si estás en desarrollo
   if (process.env.NODE_ENV !== "production") {
-    console.error("❌ Error interno:", err);
+    console.error("Error interno:", err);
   }
 
   // Respuesta limpia para el usuario sin exponer credenciales ni código interno
@@ -61,13 +61,13 @@ app.use((err, req, res, next) => {
 // Inicialización de PostgreSQL y Servidor
 AppDataSource.initialize()
   .then(() => {
-    console.log("✅ Base de datos PostgreSQL conectada exitosamente");
+    console.log("Base de datos PostgreSQL conectada exitosamente");
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
-      console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);
+      console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("❌ Error al conectar con la base de datos:", error);
+    console.error("Error al conectar con la base de datos:", error);
     process.exit(1);
   });
