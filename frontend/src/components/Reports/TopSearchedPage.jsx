@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Card,
-  CardContent,
-  Typography,
-  CircularProgress,
-  Alert,
   Divider,
-  Grid
+  Alert
 } from "@mui/material";
 import {
   ResponsiveContainer,
@@ -18,7 +13,11 @@ import {
   CartesianGrid,
   Tooltip
 } from "recharts";
-import { api } from "../api/backend";
+import { api } from "../../api/backend";
+import LoadingSpinner from "../Common/Layout/LoadingSpinner";
+import ErrorAlert from "../Common/Feedback/ErrorAlert";
+import GlassCard from "../Common/Layout/GlassCard";
+import PageTitle from "../Common/Typography/PageTitle";
 
 export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayerPerformance }) {
   const [loading, setLoading] = useState(true);
@@ -27,19 +26,19 @@ export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayer
   const [rendimientoData, setRendimientoData] = useState([]);
 
   useEffect(() => {
-    const cargarTopBuscados = async () => {
+    const loadTopSearched = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await api.obtenerTopBuscados();
+        const res = await api.getTopSearched();
         if (res.status === "success" && res.data) {
           const mapData = (list) =>
             (list || []).map((item) => ({
               id: item.id,
-              nombre: item.nombre,
-              equipo: item.equipo || "Sin club",
-              displayLabel: item.equipo ? `${item.nombre} (${item.equipo})` : `${item.nombre} (Sin club)`,
-              busquedas: parseInt(item.cantidad_busquedas, 10) || 0,
+              name: item.name,
+              club: item.club || "Sin club",
+              displayLabel: item.club ? `${item.name} (${item.club})` : `${item.name} (Sin club)`,
+              busquedas: item.searchCount || 0,
             }));
 
           setClinicoData(mapData(res.data.clinico));
@@ -52,12 +51,16 @@ export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayer
       }
     };
 
-    cargarTopBuscados();
+    loadTopSearched();
   }, []);
 
   const handleBarClick = (item, type) => {
     if (!item || !item.payload) return;
-    const player = item.payload;
+    const player = {
+      id: item.payload.id,
+      nombre: item.payload.name,
+      equipo: item.payload.club,
+    };
     if (type === "clinico" && onSelectPlayerClinical) {
       onSelectPlayerClinical(player);
     } else if (type === "rendimiento" && onSelectPlayerPerformance) {
@@ -66,38 +69,24 @@ export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayer
   };
 
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress color="primary" />
-      </Box>
-    );
+    return <LoadingSpinner py={8} />;
   }
 
   if (error) {
-    return (
-      <Alert severity="error" sx={{ borderRadius: 3 }}>
-        {error}
-      </Alert>
-    );
+    return <ErrorAlert message={error} />;
   }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <Box>
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: "-1px" }}>
-          Top 10 Jugadores Más Buscados
-        </Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
-          Análisis de popularidad consolidado en tiempo real. Haz clic en la barra de cualquier jugador para navegar de inmediato a su perfil.
-        </Typography>
-      </Box>
+      <PageTitle
+        title="Top 10 Jugadores Más Buscados"
+        subtitle="Análisis de popularidad consolidado en tiempo real. Haz clic en la barra de cualquier jugador para navegar de inmediato a su perfil."
+      />
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <Card variant="outlined" sx={{ borderRadius: 4, bgcolor: "rgba(255, 255, 255, 0.01)" }}>
-          <CardContent sx={{ p: 3 }}>
-            <Typography variant="subtitle1" sx={{ color: "primary.light", mb: 2, fontWeight: 800 }}>
-              Buscador Clínico
-            </Typography>
+        <GlassCard>
+          <Box sx={{ p: 3 }}>
+            <PageTitle title="Buscador Clínico" sx={{ mb: 2 }} />
             <Divider sx={{ mb: 3, borderColor: "rgba(255, 255, 255, 0.06)" }} />
             {clinicoData.length === 0 ? (
               <Alert severity="info" sx={{ borderRadius: 3 }}>
@@ -144,14 +133,12 @@ export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayer
                 </ResponsiveContainer>
               </Box>
             )}
-          </CardContent>
-        </Card>
+          </Box>
+        </GlassCard>
 
-        <Card variant="outlined" sx={{ borderRadius: 4, bgcolor: "rgba(255, 255, 255, 0.01)" }}>
-          <CardContent sx={{ p: 3 }}>
-            <Typography variant="subtitle1" sx={{ color: "primary.light", mb: 2, fontWeight: 800 }}>
-              Buscador de Rendimiento
-            </Typography>
+        <GlassCard>
+          <Box sx={{ p: 3 }}>
+            <PageTitle title="Buscador de Rendimiento" sx={{ mb: 2 }} />
             <Divider sx={{ mb: 3, borderColor: "rgba(255, 255, 255, 0.06)" }} />
             {rendimientoData.length === 0 ? (
               <Alert severity="info" sx={{ borderRadius: 3 }}>
@@ -198,8 +185,8 @@ export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayer
                 </ResponsiveContainer>
               </Box>
             )}
-          </CardContent>
-        </Card>
+          </Box>
+        </GlassCard>
       </Box>
     </Box>
   );

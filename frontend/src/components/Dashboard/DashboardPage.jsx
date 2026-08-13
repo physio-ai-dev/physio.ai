@@ -1,27 +1,26 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Typography,
-  TextField,
-  Button,
   List,
   ListItemButton,
   ListItemText,
   Avatar,
-  CircularProgress,
-  Alert,
-  Paper,
-  InputAdornment
 } from "@mui/material";
-import { Search as SearchIcon, ArrowBack as ArrowBackIcon } from "@mui/icons-material";
-import { api } from "../api/backend";
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
+import { api } from "../../api/backend";
 import DashboardPanel from "./DashboardPanel";
+import LoadingSpinner from "../Common/Layout/LoadingSpinner";
+import ErrorAlert from "../Common/Feedback/ErrorAlert";
+import GlassCard from "../Common/Layout/GlassCard";
+import SearchInput from "../Common/Inputs/SearchInput";
+import ActionButton from "../Common/Buttons/ActionButton";
+import PageTitle from "../Common/Typography/PageTitle";
 
 export default function DashboardPage({ initialPlayer, onResetPlayer }) {
-  const [busqueda, setBusqueda] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [listaCoincidencias, setListaCoincidencias] = useState([]);
+  const [matchedPlayers, setMatchedPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(initialPlayer || null);
 
   useEffect(() => {
@@ -30,19 +29,19 @@ export default function DashboardPage({ initialPlayer, onResetPlayer }) {
     }
   }, [initialPlayer]);
 
-  const handleBuscar = async (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    if (!busqueda.trim()) return;
+    if (!searchQuery.trim()) return;
 
     setLoading(true);
     setError(null);
     setSelectedPlayer(null);
-    setListaCoincidencias([]);
+    setMatchedPlayers([]);
 
     try {
-      const res = await api.buscarJugador(busqueda);
+      const res = await api.searchPlayer(searchQuery);
       if (res.data && res.data.length > 0) {
-        setListaCoincidencias(res.data);
+        setMatchedPlayers(res.data);
       } else {
         setError("No se encontraron futbolistas con ese nombre.");
       }
@@ -54,10 +53,10 @@ export default function DashboardPage({ initialPlayer, onResetPlayer }) {
   };
 
   const handleSelect = (player) => {
-    api.registrarSeleccion(player.id, "rendimiento").catch(console.error);
+    api.recordSelection(player.id, "rendimiento").catch(console.error);
     setSelectedPlayer(player);
-    setListaCoincidencias([]);
-    setBusqueda("");
+    setMatchedPlayers([]);
+    setSearchQuery("");
   };
 
   return (
@@ -65,7 +64,7 @@ export default function DashboardPage({ initialPlayer, onResetPlayer }) {
       {selectedPlayer ? (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <Button
+            <ActionButton
               variant="outlined"
               size="small"
               onClick={() => {
@@ -73,18 +72,32 @@ export default function DashboardPage({ initialPlayer, onResetPlayer }) {
                 if (onResetPlayer) onResetPlayer();
               }}
               startIcon={<ArrowBackIcon />}
-              sx={{ borderRadius: 3, textTransform: "none", fontWeight: 700 }}
+              sx={{
+                borderRadius: 3,
+                px: 3,
+                py: 0.8,
+                bgcolor: "transparent",
+                color: "primary.main",
+                borderColor: "rgba(16, 185, 129, 0.3)",
+                boxShadow: "none",
+                "&:hover": {
+                  bgcolor: "rgba(16, 185, 129, 0.08)",
+                  borderColor: "primary.main",
+                  boxShadow: "none",
+                }
+              }}
             >
               Buscar otro jugador
-            </Button>
+            </ActionButton>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <Avatar
-                src={selectedPlayer.foto_url || selectedPlayer.foto}
+                src={selectedPlayer.photoUrl || selectedPlayer.foto_url || selectedPlayer.foto}
                 sx={{ width: 40, height: 40, border: "1px solid #10b981" }}
               />
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                {selectedPlayer.nombre}
-              </Typography>
+              <PageTitle
+                title={selectedPlayer.name || selectedPlayer.nombre}
+                sx={{ mb: 0 }}
+              />
             </Box>
           </Box>
           <DashboardPanel jugadorId={selectedPlayer.id} />
@@ -92,17 +105,15 @@ export default function DashboardPage({ initialPlayer, onResetPlayer }) {
       ) : (
         <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 8, gap: 4 }}>
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: "-1px" }}>
-              Buscador de Rendimiento
-            </Typography>
-            <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
-              Consulta estadísticas de partidos y proyecciones de lesiones asistidas por IA.
-            </Typography>
+            <PageTitle
+              title="Buscador de Rendimiento"
+              subtitle="Consulta estadísticas de partidos y proyecciones de lesiones asistidas por IA."
+            />
           </Box>
 
           <Box
             component="form"
-            onSubmit={handleBuscar}
+            onSubmit={handleSearch}
             sx={{
               width: "100%",
               maxWidth: 500,
@@ -111,65 +122,34 @@ export default function DashboardPage({ initialPlayer, onResetPlayer }) {
               gap: 2,
             }}
           >
-            <TextField
-              fullWidth
+            <SearchInput
               placeholder="Escribe el nombre de un futbolista..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               disabled={loading}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: "text.secondary" }} />
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    borderRadius: 4,
-                    bgcolor: "rgba(255, 255, 255, 0.02)",
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(255, 255, 255, 0.08)",
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "rgba(255, 255, 255, 0.15)",
-                    },
-                  },
-                },
-              }}
             />
-            <Button
+            <ActionButton
               fullWidth
-              variant="contained"
-              color="primary"
               type="submit"
               disabled={loading}
-              sx={{ borderRadius: 4, py: 1.2, textTransform: "none", fontWeight: 800 }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : "Buscar Estadísticas"}
-            </Button>
+              Buscar Estadísticas
+            </ActionButton>
           </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ width: "100%", maxWidth: 500, borderRadius: 3 }}>
-              {error}
-            </Alert>
-          )}
+          <ErrorAlert message={error} sx={{ width: "100%", maxWidth: 500 }} />
 
-          {listaCoincidencias.length > 0 && (
-            <Paper
-              variant="outlined"
+          {matchedPlayers.length > 0 && (
+            <GlassCard
               sx={{
                 width: "100%",
                 maxWidth: 500,
-                borderRadius: 4,
                 bgcolor: "rgba(11, 21, 40, 0.5)",
-                backdropFilter: "blur(10px)",
-                borderColor: "rgba(255, 255, 255, 0.06)",
                 overflow: "hidden",
               }}
             >
               <List disablePadding>
-                {listaCoincidencias.map((player) => (
+                {matchedPlayers.map((player) => (
                   <ListItemButton
                     key={player.id}
                     onClick={() => handleSelect(player)}
@@ -181,19 +161,19 @@ export default function DashboardPage({ initialPlayer, onResetPlayer }) {
                     }}
                   >
                     <Avatar
-                      src={player.foto_url || player.foto}
+                      src={player.photoUrl || player.foto_url || player.foto}
                       sx={{ mr: 2, width: 36, height: 36, border: "1px solid rgba(255, 255, 255, 0.1)" }}
                     />
                     <ListItemText
-                      primary={player.nombre}
-                      secondary={`${player.equipo} • ${player.posicion}`}
+                      primary={player.name}
+                      secondary={`${player.club} • ${player.position}`}
                       primaryTypographyProps={{ fontWeight: 700, fontSize: "0.9rem" }}
                       secondaryTypographyProps={{ fontSize: "0.75rem", color: "text.secondary" }}
                     />
                   </ListItemButton>
                 ))}
               </List>
-            </Paper>
+            </GlassCard>
           )}
         </Box>
       )}

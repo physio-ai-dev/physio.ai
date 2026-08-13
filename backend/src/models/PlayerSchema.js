@@ -1,8 +1,8 @@
 import { EntitySchema } from "typeorm";
 
 const PlayerSchema = new EntitySchema({
-  name: "Jugador",
-  tableName: "jugadores",
+  name: "Player",
+  tableName: "players",
   columns: {
     id: {
       type: "int",
@@ -14,24 +14,24 @@ const PlayerSchema = new EntitySchema({
       unique: true,
       nullable: true,
     },
-    nombre: {
+    name: {
       type: "varchar",
       length: 150,
     },
-    foto_url: {
+    photo_url: {
       type: "text",
       nullable: true,
     },
-    fecha_nacimiento: {
+    birthdate: {
       type: "date",
       nullable: true,
     },
-    estatura: {
+    height: {
       type: "varchar",
       length: 50,
       nullable: true,
     },
-    valor_mercado: {
+    market_value: {
       type: "varchar",
       length: 100,
       nullable: true,
@@ -45,13 +45,13 @@ const PlayerSchema = new EntitySchema({
     club: {
       target: "Club",
       type: "many-to-one",
-      joinColumn: { name: "club_fk" },
+      joinColumn: { name: "club_id" },
       nullable: true,
     },
-    posicion: {
-      target: "Posicion",
+    position: {
+      target: "Position",
       type: "many-to-one",
-      joinColumn: { name: "posicion_fk" },
+      joinColumn: { name: "position_id" },
       nullable: true,
     },
   },

@@ -48,7 +48,7 @@ const generateMatches = (playerId, positionName) => {
   return matches;
 };
 
-export const obtenerEstadisticas = async (req, res) => {
+export const getPlayerStats = async (req, res) => {
   try {
     const playerId = parseInt(req.query.id, 10);
     if (!playerId) {
@@ -58,22 +58,22 @@ export const obtenerEstadisticas = async (req, res) => {
     const playerRepository = AppDataSource.getRepository(PlayerSchema);
     const player = await playerRepository.findOne({
       where: { id: playerId },
-      relations: ["posicion"],
+      relations: ["position"],
     });
 
     if (!player) {
       return res.status(404).json({ error: "Jugador no encontrado." });
     }
 
-    const matches = generateMatches(player.id, player.posicion?.nombre);
-    const partidos = matches.length;
-    const goles = matches.reduce((acc, m) => acc + m.goals, 0);
-    const asistencias = matches.reduce((acc, m) => acc + m.assists, 0);
+    const matches = generateMatches(player.id, player.position?.name);
+    const matchesPlayed = matches.length;
+    const goals = matches.reduce((acc, m) => acc + m.goals, 0);
+    const assists = matches.reduce((acc, m) => acc + m.assists, 0);
 
     return res.json({
-      partidos,
-      goles,
-      asistencias,
+      partidos: matchesPlayed,
+      goles: goals,
+      asistencias: assists,
       recentMatches: matches,
     });
   } catch (error) {
@@ -81,7 +81,7 @@ export const obtenerEstadisticas = async (req, res) => {
   }
 };
 
-export const obtenerAnalisisIA = async (req, res) => {
+export const getPlayerPerformanceAIAnalysis = async (req, res) => {
   try {
     const playerId = parseInt(req.body.id, 10);
     if (!playerId) {
@@ -91,22 +91,22 @@ export const obtenerAnalisisIA = async (req, res) => {
     const playerRepository = AppDataSource.getRepository(PlayerSchema);
     const player = await playerRepository.findOne({
       where: { id: playerId },
-      relations: ["posicion"],
+      relations: ["position"],
     });
 
     if (!player) {
       return res.status(404).json({ error: "Jugador no encontrado." });
     }
 
-    const matches = generateMatches(player.id, player.posicion?.nombre);
-    const goles = matches.reduce((acc, m) => acc + m.goals, 0);
-    const asistencias = matches.reduce((acc, m) => acc + m.assists, 0);
+    const matches = generateMatches(player.id, player.position?.name);
+    const goals = matches.reduce((acc, m) => acc + m.goals, 0);
+    const assists = matches.reduce((acc, m) => acc + m.assists, 0);
     const avgRating = (matches.reduce((acc, m) => acc + m.rating, 0) / matches.length).toFixed(2);
     const avgMinutes = (matches.reduce((acc, m) => acc + m.minutes, 0) / matches.length).toFixed(0);
 
-    const prompt = `Analiza el rendimiento del futbolista profesional ${player.nombre} (Posición: ${player.posicion?.nombre || "Sin posición"}) basándose en sus estadísticas de los últimos 20 partidos:
-- Goles totales: ${goles}
-- Asistencias totales: ${asistencias}
+    const prompt = `Analiza el rendimiento del futbolista profesional ${player.name} (Posición: ${player.position?.name || "Sin posición"}) basándose en sus estadísticas de los últimos 20 partidos:
+- Goles totales: ${goals}
+- Asistencias totales: ${assists}
 - Calificación de rendimiento promedio: ${avgRating}
 - Promedio de minutos jugados: ${avgMinutes}
 

@@ -3,10 +3,6 @@ import {
   Box,
   Typography,
   Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Button,
   List,
   ListItem,
   ListItemIcon,
@@ -21,7 +17,10 @@ import {
   Lock as LockIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
-import { api } from "../api/backend";
+import { api } from "../../api/backend";
+import GlassCard from "../Common/Layout/GlassCard";
+import ActionButton from "../Common/Buttons/ActionButton";
+import PageTitle from "../Common/Typography/PageTitle";
 
 export default function PricingPage({ onGoBack, currentUser }) {
   const [loading, setLoading] = useState(false);
@@ -31,7 +30,7 @@ export default function PricingPage({ onGoBack, currentUser }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.crearSesionStripe();
+      const res = await api.createStripeSession();
       if (res && res.url) {
         window.location.href = res.url;
       } else {
@@ -57,41 +56,40 @@ export default function PricingPage({ onGoBack, currentUser }) {
       }}
     >
       <Box>
-        <Button
+        <ActionButton
+          variant="outlined"
           startIcon={<ArrowBackIcon />}
           onClick={onGoBack}
           sx={{
             color: "text.secondary",
             textTransform: "none",
             fontWeight: 700,
+            borderColor: "transparent",
+            boxShadow: "none",
+            bgcolor: "transparent",
+            "&:hover": {
+              borderColor: "rgba(255, 255, 255, 0.08)",
+              bgcolor: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "none",
+            }
           }}
         >
           Volver
-        </Button>
+        </ActionButton>
       </Box>
 
       <Box sx={{ textAlign: "center", mb: 4 }}>
-        <Typography
-          variant="h4"
-          sx={{ fontWeight: 950, letterSpacing: "-1px", mb: 1 }}
-        >
-          Planes de Suscripción
-        </Typography>
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          sx={{ fontWeight: 500, maxWidth: "md", mx: "auto" }}
-        >
-          Desbloquea auditorías completas, reportes clínicos por inteligencia
-          artificial y consultas ilimitadas para tus futbolistas.
-        </Typography>
+        <PageTitle
+          title="Planes de Suscripción"
+          subtitle="Desbloquea auditorías completas, reportes clínicos por inteligencia artificial y consultas ilimitadas para tus futbolistas."
+        />
       </Box>
 
       {error && (
         <Alert
           severity="error"
           variant="outlined"
-          sx={{ borderRadius: 3, maxWidth: "md", mx: "auto", width: "100%" }}
+          sx={{ borderRadius: 3, maxWidth: "md", mx: "auto", width: "100%", mb: 3 }}
         >
           {error}
         </Alert>
@@ -99,18 +97,8 @@ export default function PricingPage({ onGoBack, currentUser }) {
 
       <Grid container spacing={3} justifyContent="center" alignItems="stretch">
         <Grid item xs={12} md={4}>
-          <Card
-            variant="outlined"
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              bgcolor: "rgba(255, 255, 255, 0.01)",
-              borderColor: "rgba(255, 255, 255, 0.05)",
-              borderRadius: 4,
-            }}
-          >
-            <CardContent sx={{ p: 4, flexGrow: 1 }}>
+          <GlassCard sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+            <Box sx={{ p: 4, flexGrow: 1 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
                 Gratuito
               </Typography>
@@ -164,35 +152,32 @@ export default function PricingPage({ onGoBack, currentUser }) {
                   />
                 </ListItem>
               </List>
-            </CardContent>
-            <CardActions sx={{ p: 4, pt: 0 }}>
-              <Button
+            </Box>
+            <Box sx={{ p: 4, pt: 0 }}>
+              <ActionButton
                 fullWidth
                 variant="outlined"
                 disabled
                 sx={{
                   borderRadius: 3,
-                  textTransform: "none",
-                  fontWeight: 700,
                   py: 1.2,
+                  boxShadow: "none",
                 }}
               >
                 {!isPremium ? "Plan Actual" : "Bajar a Gratis"}
-              </Button>
-            </CardActions>
-          </Card>
+              </ActionButton>
+            </Box>
+          </GlassCard>
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Card
-            variant="outlined"
+          <GlassCard
             sx={{
               height: "100%",
               display: "flex",
               flexDirection: "column",
               bgcolor: "rgba(16, 185, 129, 0.03)",
               borderColor: "rgba(16, 185, 129, 0.2)",
-              borderRadius: 4,
               position: "relative",
               boxShadow: "0 8px 32px rgba(16, 185, 129, 0.08)",
             }}
@@ -211,7 +196,7 @@ export default function PricingPage({ onGoBack, currentUser }) {
                 px: 1,
               }}
             />
-            <CardContent sx={{ p: 4, flexGrow: 1 }}>
+            <Box sx={{ p: 4, flexGrow: 1 }}>
               <Typography
                 variant="h6"
                 sx={{ fontWeight: 800, mb: 1, color: "primary.light" }}
@@ -283,18 +268,13 @@ export default function PricingPage({ onGoBack, currentUser }) {
                   />
                 </ListItem>
               </List>
-            </CardContent>
-            <CardActions sx={{ p: 4, pt: 0 }}>
-              <Button
+            </Box>
+            <Box sx={{ p: 4, pt: 0 }}>
+              <ActionButton
                 fullWidth
-                variant="contained"
-                color="primary"
                 onClick={handleUpgrade}
                 disabled={loading || isPremium}
                 sx={{
-                  borderRadius: 3,
-                  textTransform: "none",
-                  fontWeight: 700,
                   py: 1.2,
                 }}
               >
@@ -305,25 +285,21 @@ export default function PricingPage({ onGoBack, currentUser }) {
                 ) : (
                   "Adquirir Premium"
                 )}
-              </Button>
-            </CardActions>
-          </Card>
+              </ActionButton>
+            </Box>
+          </GlassCard>
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Card
-            variant="outlined"
+          <GlassCard
             sx={{
               height: "100%",
               display: "flex",
               flexDirection: "column",
-              bgcolor: "rgba(255, 255, 255, 0.01)",
-              borderColor: "rgba(255, 255, 255, 0.05)",
-              borderRadius: 4,
               opacity: 0.5,
             }}
           >
-            <CardContent sx={{ p: 4, flexGrow: 1 }}>
+            <Box sx={{ p: 4, flexGrow: 1 }}>
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
               >
@@ -387,23 +363,21 @@ export default function PricingPage({ onGoBack, currentUser }) {
                   />
                 </ListItem>
               </List>
-            </CardContent>
-            <CardActions sx={{ p: 4, pt: 0 }}>
-              <Button
+            </Box>
+            <Box sx={{ p: 4, pt: 0 }}>
+              <ActionButton
                 fullWidth
                 variant="outlined"
                 disabled
                 sx={{
-                  borderRadius: 3,
-                  textTransform: "none",
-                  fontWeight: 700,
                   py: 1.2,
+                  boxShadow: "none",
                 }}
               >
                 No Disponible
-              </Button>
-            </CardActions>
-          </Card>
+              </ActionButton>
+            </Box>
+          </GlassCard>
         </Grid>
       </Grid>
     </Box>

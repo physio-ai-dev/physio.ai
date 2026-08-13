@@ -3,10 +3,10 @@ import "dotenv/config";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-export const analyzeInjuryWithGemini = async (tipoLesion, diasClub) => {
+export const analyzeInjuryWithGemini = async (injuryType, clubDays) => {
   const prompt = `Actúa como un médico especialista en medicina deportiva de alto rendimiento.
-  Un futbolista profesional ha sufrido la siguiente lesión: "${tipoLesion}".
-  El cuerpo médico del club estima un tiempo de recuperación de ${diasClub} días.
+  Un futbolista profesional ha sufrido la siguiente lesión: "${injuryType}".
+  El cuerpo médico del club estima un tiempo de recuperación de ${clubDays} días.
   Compara esta estimación con la literatura médica científica y emite tu criterio clínico.`;
 
   const response = await ai.models.generateContent({
@@ -17,16 +17,16 @@ export const analyzeInjuryWithGemini = async (tipoLesion, diasClub) => {
       responseSchema: {
         type: "OBJECT",
         properties: {
-          tiempo_clinico_ia: {
+          clinical_time_ai: {
             type: "INTEGER",
             description: "Número estimado de días de recuperación en promedio según literatura médica.",
           },
-          analisis_comparativo: {
+          comparative_analysis: {
             type: "STRING",
             description: "Análisis comparativo estructurado en formato Markdown. Debe incluir obligatoriamente subtítulos usando '###' (ej: '### Análisis de la Estimación', '### Justificación Fisiológica', '### Criterios e Hitos para el Alta') y listas con viñetas ('-') para detallar hitos, recomendaciones o riesgos de recaída.",
           },
         },
-        required: ["tiempo_clinico_ia", "analisis_comparativo"],
+        required: ["clinical_time_ai", "comparative_analysis"],
       },
     },
   });

@@ -1,8 +1,8 @@
 import { EntitySchema } from "typeorm";
 
 const UserSchema = new EntitySchema({
-  name: "Usuario",
-  tableName: "usuarios",
+  name: "User",
+  tableName: "users",
   columns: {
     id: {
       type: "int",
@@ -30,10 +30,10 @@ const UserSchema = new EntitySchema({
       type: "date",
       nullable: false,
     },
-    rol: {
+    role: {
       type: "varchar",
       length: 50,
-      default: "usuario",
+      default: "user",
     },
     subscription_tier: {
       type: "varchar",

@@ -2,10 +2,7 @@ import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   TextField,
-  Button,
   Grid,
   Alert,
   CircularProgress,
@@ -21,14 +18,16 @@ import {
   ArrowBack as ArrowBackIcon,
   PersonAdd as PersonAddIcon,
   Person as PersonIcon,
-  SportsSoccer as SoccerIcon,
-  Badge as BadgeIcon,
   Straighten as RulerIcon,
-  AttachMoney as MoneyIcon,
-  Event as CalendarIcon,
+  CalendarMonth as CalendarIcon,
   CloudUpload as UploadIcon,
 } from "@mui/icons-material";
-import { api } from "../api/backend";
+import { api } from "../../api/backend";
+import LoadingSpinner from "../Common/Layout/LoadingSpinner";
+import ErrorAlert from "../Common/Feedback/ErrorAlert";
+import GlassCard from "../Common/Layout/GlassCard";
+import ActionButton from "../Common/Buttons/ActionButton";
+import PageTitle from "../Common/Typography/PageTitle";
 
 export default function CreatePlayerPage({ onGoBack }) {
   const [formData, setFormData] = useState({
@@ -41,69 +40,68 @@ export default function CreatePlayerPage({ onGoBack }) {
     liga: "",
   });
 
-  const [ligas, setLigas] = useState([]);
-  const [posiciones, setPosiciones] = useState([]);
-  const [clubes, setClubes] = useState([]);
-  const [loadingLigas, setLoadingLigas] = useState(true);
-  const [loadingPosiciones, setLoadingPosiciones] = useState(true);
-  const [loadingClubes, setLoadingClubes] = useState(false);
+  const [leagues, setLeagues] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [clubs, setClubs] = useState([]);
+  const [loadingLeagues, setLoadingLeagues] = useState(true);
+  const [loadingPositions, setLoadingPositions] = useState(true);
+  const [loadingClubs, setLoadingClubs] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
   // 1. Cargar ligas y posiciones dinámicas desde la base de datos
   useEffect(() => {
-    const fetchLigas = async () => {
+    const fetchLeagues = async () => {
       try {
-        const res = await api.obtenerLigas();
+        const res = await api.getLeagues();
         if (res && res.status === "success" && Array.isArray(res.data)) {
-          setLigas(res.data);
+          setLeagues(res.data);
           if (res.data.length > 0) {
-            setFormData((prev) => ({ ...prev, liga: res.data[0].nombre }));
+            setFormData((prev) => ({ ...prev, liga: res.data[0].name }));
           }
         }
       } catch (err) {
         console.error("Error al cargar catálogo de ligas:", err);
         setError("No se pudo conectar con el catálogo de ligas.");
       } finally {
-        setLoadingLigas(false);
+        setLoadingLeagues(false);
       }
     };
 
-    const fetchPosiciones = async () => {
+    const fetchPositions = async () => {
       try {
-        const res = await api.obtenerPosiciones();
+        const res = await api.getPositions();
         if (res && res.status === "success" && Array.isArray(res.data)) {
-          setPosiciones(res.data);
+          setPositions(res.data);
           if (res.data.length > 0) {
-            setFormData((prev) => ({ ...prev, posicion: res.data[0].nombre }));
+            setFormData((prev) => ({ ...prev, posicion: res.data[0].name }));
           }
         }
       } catch (err) {
         console.error("Error al cargar catálogo de posiciones:", err);
         setError("No se pudo conectar con el catálogo de posiciones.");
       } finally {
-        setLoadingPosiciones(false);
+        setLoadingPositions(false);
       }
     };
 
-    fetchLigas();
-    fetchPosiciones();
+    fetchLeagues();
+    fetchPositions();
   }, []);
 
   // 2. Cargar clubes filtrados por la liga seleccionada
   useEffect(() => {
     if (!formData.liga) return;
 
-    const fetchClubes = async () => {
-      setLoadingClubes(true);
+    const fetchClubs = async () => {
+      setLoadingClubs(true);
       try {
-        const res = await api.obtenerClubes(formData.liga);
+        const res = await api.getClubs(formData.liga);
         if (res && res.status === "success" && Array.isArray(res.data)) {
-          setClubes(res.data);
+          setClubs(res.data);
           if (res.data.length > 0) {
-            // Pre-seleccionar el primer club de la lista
-            setFormData((prev) => ({ ...prev, equipo: res.data[0].nombre }));
+            setFormData((prev) => ({ ...prev, equipo: res.data[0].name }));
           } else {
             setFormData((prev) => ({ ...prev, equipo: "" }));
           }
@@ -111,11 +109,11 @@ export default function CreatePlayerPage({ onGoBack }) {
       } catch (err) {
         console.error("Error al cargar clubes de la liga:", err);
       } finally {
-        setLoadingClubes(false);
+        setLoadingClubs(false);
       }
     };
 
-    fetchClubes();
+    fetchClubs();
   }, [formData.liga]);
 
   const handleChange = (e) => {
@@ -145,7 +143,7 @@ export default function CreatePlayerPage({ onGoBack }) {
     setLoading(true);
 
     try {
-      const response = await api.crearJugadorLocal({
+      const response = await api.createLocalPlayer({
         ...formData,
         estatura: `${estatura} cm`,
         valor_mercado: `${valor_mercado} EUR`,
@@ -154,16 +152,16 @@ export default function CreatePlayerPage({ onGoBack }) {
 
       if (response && response.status === "success") {
         setSuccess(
-          `¡Jugador "${response.data.nombre}" registrado localmente con éxito! Ya puedes buscarlo por su nombre.`
+          `¡Jugador "${response.data.name || response.data.nombre}" registrado localmente con éxito! Ya puedes buscarlo por su nombre.`
         );
         setFormData({
           nombre: "",
-          equipo: clubes.length > 0 ? clubes[0].nombre : "",
-          posicion: posiciones.length > 0 ? posiciones[0].nombre : "",
+          equipo: clubs.length > 0 ? clubs[0].name : "",
+          posicion: positions.length > 0 ? positions[0].name : "",
           estatura: "",
           valor_mercado: "",
           fecha_nacimiento: "",
-          liga: ligas.length > 0 ? ligas[0].nombre : "",
+          liga: leagues.length > 0 ? leagues[0].name : "",
         });
       } else {
         throw new Error("No se pudo completar el registro.");
@@ -188,35 +186,43 @@ export default function CreatePlayerPage({ onGoBack }) {
     >
       {/* Botón de regreso */}
       <Box>
-        <Button
+        <ActionButton
+          variant="outlined"
           startIcon={<ArrowBackIcon />}
           onClick={onGoBack}
-          sx={{ color: "text.secondary", textTransform: "none", fontWeight: 700 }}
+          sx={{
+            color: "text.secondary",
+            textTransform: "none",
+            fontWeight: 700,
+            borderColor: "transparent",
+            boxShadow: "none",
+            bgcolor: "transparent",
+            "&:hover": {
+              borderColor: "rgba(255, 255, 255, 0.08)",
+              bgcolor: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "none",
+            }
+          }}
         >
           Volver al Buscador
-        </Button>
+        </ActionButton>
       </Box>
 
-      <Card variant="outlined">
-        <CardContent sx={{ p: { xs: 4, sm: 5, md: 6 } }}>
+      <GlassCard>
+        <Box sx={{ p: { xs: 4, sm: 5, md: 6 } }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2.5, mb: 6 }}>
             <PersonAddIcon color="primary" sx={{ fontSize: 38 }} />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 950, letterSpacing: "-0.5px" }}>
-                Registrar Futbolista Local
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mt: 0.5 }}>
-                Completa los datos del futbolista para darlo de alta en la base de datos de Physio.AI
-              </Typography>
+              <PageTitle
+                title="Registrar Futbolista Local"
+                subtitle="Completa los datos del futbolista para darlo de alta en la base de datos de Physio.AI"
+                sx={{ mb: 0 }}
+              />
             </Box>
           </Box>
 
           {/* Alertas */}
-          {error && (
-            <Alert severity="error" variant="outlined" sx={{ mb: 5, borderRadius: 3 }}>
-              {error}
-            </Alert>
-          )}
+          <ErrorAlert message={error} sx={{ mb: 5 }} />
           {success && (
             <Alert severity="success" variant="outlined" sx={{ mb: 5, borderRadius: 3 }}>
               {success}
@@ -251,8 +257,10 @@ export default function CreatePlayerPage({ onGoBack }) {
                         value={formData.nombre}
                         onChange={handleChange}
                         disabled={loading}
-                        InputProps={{
-                          startAdornment: <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                        slotProps={{
+                          input: {
+                            startAdornment: <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                          }
                         }}
                       />
                       
@@ -266,8 +274,10 @@ export default function CreatePlayerPage({ onGoBack }) {
                         value={formData.fecha_nacimiento}
                         onChange={handleChange}
                         disabled={loading}
-                        InputProps={{
-                          startAdornment: <CalendarIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                        slotProps={{
+                          input: {
+                            startAdornment: <CalendarIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                          }
                         }}
                       />
 
@@ -282,9 +292,11 @@ export default function CreatePlayerPage({ onGoBack }) {
                         onChange={handleChange}
                         disabled={loading}
                         inputProps={{ min: 50, max: 250 }}
-                        InputProps={{
-                          startAdornment: <RulerIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
-                          endAdornment: <InputAdornment position="end">cm</InputAdornment>,
+                        slotProps={{
+                          input: {
+                            startAdornment: <RulerIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
+                            endAdornment: <InputAdornment position="end">cm</InputAdornment>,
+                          }
                         }}
                       />
                     </Box>
@@ -307,7 +319,7 @@ export default function CreatePlayerPage({ onGoBack }) {
                     <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       
                       {/* Select Dropdown para Ligas */}
-                      <FormControl fullWidth disabled={loading || loadingLigas}>
+                      <FormControl fullWidth disabled={loading || loadingLeagues}>
                         <InputLabel id="liga-label">Liga *</InputLabel>
                         <Select
                           labelId="liga-label"
@@ -316,14 +328,14 @@ export default function CreatePlayerPage({ onGoBack }) {
                           onChange={handleChange}
                           label="Liga *"
                         >
-                          {loadingLigas ? (
+                          {loadingLeagues ? (
                             <MenuItem value="">
                               <CircularProgress size={16} sx={{ mr: 1 }} /> Cargando ligas...
                             </MenuItem>
                           ) : (
-                            ligas.map((league) => (
-                              <MenuItem key={league.id} value={league.nombre}>
-                                {league.nombre} {league.pais ? `(${league.pais})` : ""}
+                            leagues.map((league) => (
+                              <MenuItem key={league.id} value={league.name}>
+                                {league.name} {league.country ? `(${league.country})` : ""}
                               </MenuItem>
                             ))
                           )}
@@ -331,7 +343,7 @@ export default function CreatePlayerPage({ onGoBack }) {
                       </FormControl>
 
                       {/* Select Dropdown para Clubes (Filtrados por la Liga seleccionada) */}
-                      <FormControl fullWidth disabled={loading || loadingClubes || loadingLigas}>
+                      <FormControl fullWidth disabled={loading || loadingClubs || loadingLeagues}>
                         <InputLabel id="club-label">Equipo / Club *</InputLabel>
                         <Select
                           labelId="club-label"
@@ -340,18 +352,18 @@ export default function CreatePlayerPage({ onGoBack }) {
                           onChange={handleChange}
                           label="Equipo / Club *"
                         >
-                          {loadingClubes ? (
+                          {loadingClubs ? (
                             <MenuItem value="">
                               <CircularProgress size={16} sx={{ mr: 1 }} /> Cargando clubes...
                             </MenuItem>
-                          ) : clubes.length === 0 ? (
+                          ) : clubs.length === 0 ? (
                             <MenuItem value="">
                               No hay clubes (agrégalos en PGadmin)
                             </MenuItem>
                           ) : (
-                            clubes.map((club) => (
-                              <MenuItem key={club.id} value={club.nombre}>
-                                {club.nombre}
+                            clubs.map((club) => (
+                              <MenuItem key={club.id} value={club.name}>
+                                {club.name}
                               </MenuItem>
                             ))
                           )}
@@ -359,7 +371,7 @@ export default function CreatePlayerPage({ onGoBack }) {
                       </FormControl>
 
                       {/* Select Dropdown para Posiciones */}
-                      <FormControl fullWidth disabled={loading || loadingPosiciones}>
+                      <FormControl fullWidth disabled={loading || loadingPositions}>
                         <InputLabel id="posicion-label">Posición *</InputLabel>
                         <Select
                           labelId="posicion-label"
@@ -368,14 +380,14 @@ export default function CreatePlayerPage({ onGoBack }) {
                           onChange={handleChange}
                           label="Posición *"
                         >
-                          {loadingPosiciones ? (
+                          {loadingPositions ? (
                             <MenuItem value="">
                               <CircularProgress size={16} sx={{ mr: 1 }} /> Cargando posiciones...
                             </MenuItem>
                           ) : (
-                            posiciones.map((pos) => (
-                              <MenuItem key={pos.id} value={pos.nombre}>
-                                {pos.nombre}
+                            positions.map((pos) => (
+                              <MenuItem key={pos.id} value={pos.name}>
+                                {pos.name}
                               </MenuItem>
                             ))
                           )}
@@ -391,9 +403,11 @@ export default function CreatePlayerPage({ onGoBack }) {
                         value={formData.valor_mercado}
                         onChange={handleChange}
                         disabled={loading}
-                        InputProps={{
-                          startAdornment: <InputAdornment position="start">€</InputAdornment>,
-                          endAdornment: <InputAdornment position="end">EUR</InputAdornment>,
+                        slotProps={{
+                          input: {
+                            startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                            endAdornment: <InputAdornment position="end">EUR</InputAdornment>,
+                          }
                         }}
                       />
                     </Box>
@@ -401,7 +415,7 @@ export default function CreatePlayerPage({ onGoBack }) {
                 </Grid>
               </Grid>
 
-              {/* Sección Derecha: Caja Estilizada de Carga de Imagen */}
+              {/* Caja de Imagen */}
               <Grid item xs={12} md={4}>
                 <Typography
                   variant="subtitle2"
@@ -457,32 +471,41 @@ export default function CreatePlayerPage({ onGoBack }) {
 
             {/* Acciones */}
             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 3 }}>
-              <Button
+              <ActionButton
                 variant="outlined"
-                color="inherit"
                 disabled={loading}
                 onClick={onGoBack}
-                sx={{ px: 4, py: 1.2, borderRadius: 3 }}
+                sx={{
+                  px: 4,
+                  py: 1.2,
+                  borderColor: "rgba(255, 255, 255, 0.1)",
+                  color: "text.secondary",
+                  boxShadow: "none",
+                  bgcolor: "transparent",
+                  "&:hover": {
+                    borderColor: "rgba(255, 255, 255, 0.2)",
+                    bgcolor: "rgba(255, 255, 255, 0.02)",
+                    boxShadow: "none",
+                  }
+                }}
               >
                 Cancelar
-              </Button>
-              <Button
+              </ActionButton>
+              <ActionButton
                 type="submit"
-                variant="contained"
-                color="primary"
-                disabled={loading || loadingLigas || loadingPosiciones || loadingClubes}
-                sx={{ px: 6, py: 1.2, borderRadius: 3 }}
+                disabled={loading || loadingLeagues || loadingPositions || loadingClubs}
+                sx={{ px: 6, py: 1.2 }}
               >
                 {loading ? (
                   <CircularProgress size={24} color="inherit" />
                 ) : (
                   "Guardar Futbolista"
                 )}
-              </Button>
+              </ActionButton>
             </Box>
           </Box>
-        </CardContent>
-      </Card>
+        </Box>
+      </GlassCard>
     </Box>
   );
 }

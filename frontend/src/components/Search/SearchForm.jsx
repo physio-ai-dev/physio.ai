@@ -1,11 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  TextField,
-  Button,
-  CircularProgress,
-  Alert,
-  Paper,
   Typography,
   List,
   ListItem,
@@ -13,38 +8,35 @@ import {
   ListItemAvatar,
   Avatar,
   ListItemText,
-  InputAdornment,
 } from "@mui/material";
-import {
-  Search as SearchIcon,
-  Person as PersonIcon,
-} from "@mui/icons-material";
+import { Person as PersonIcon } from "@mui/icons-material";
+import LoadingSpinner from "../Common/Layout/LoadingSpinner";
+import ErrorAlert from "../Common/Feedback/ErrorAlert";
+import GlassCard from "../Common/Layout/GlassCard";
+import SearchInput from "../Common/Inputs/SearchInput";
+import ActionButton from "../Common/Buttons/ActionButton";
 
 export default function SearchForm({
-  busqueda,
-  setBusqueda,
+  searchQuery,
+  setSearchQuery,
   loading,
   error,
-  listaCoincidencias,
-  jugador,
+  matchedPlayers,
+  player,
   onSubmit,
   onSelectPlayer,
   onNavigateToCreate,
   isAdmin,
 }) {
-  const [openCoincidencias, setOpenCoincidencias] = useState(false);
+  const [openMatched, setOpenMatched] = useState(false);
 
   useEffect(() => {
-    if (listaCoincidencias.length > 0) {
-      setOpenCoincidencias(true);
+    if (matchedPlayers.length > 0) {
+      setOpenMatched(true);
     } else {
-      setOpenCoincidencias(false);
+      setOpenMatched(false);
     }
-  }, [listaCoincidencias]);
-
-  const handleCloseCoincidencias = () => {
-    setOpenCoincidencias(false);
-  };
+  }, [matchedPlayers]);
 
   return (
     <Box
@@ -65,49 +57,26 @@ export default function SearchForm({
           flexDirection: { xs: "column", sm: "row" },
         }}
       >
-        <TextField
-          fullWidth
+        <SearchInput
           placeholder="Ej: Vinicius Junior, Kylian Mbappe, Erling Haaland, Lamine Yamal..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           disabled={loading}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "text.secondary" }} />
-                </InputAdornment>
-              ),
-              sx: {
-                borderRadius: 4,
-                bgcolor: "rgba(255, 255, 255, 0.02)",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(255, 255, 255, 0.08)",
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "rgba(255, 255, 255, 0.15)",
-                },
-              },
-            },
-          }}
         />
-        <Button
-          variant="contained"
-          color="primary"
+        <ActionButton
           type="submit"
           disabled={loading}
           sx={{ px: 4 }}
         >
           {loading ? "Procesando..." : "Buscar"}
-        </Button>
+        </ActionButton>
       </Box>
 
       {/* Botón secundario para registrar jugador local */}
       {!loading && isAdmin && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-          <Button
+          <ActionButton
             variant="outlined"
-            color="primary"
             onClick={onNavigateToCreate}
             sx={{
               borderRadius: 4,
@@ -116,14 +85,16 @@ export default function SearchForm({
               borderColor: "rgba(16, 185, 129, 0.3)",
               bgcolor: "rgba(16, 185, 129, 0.02)",
               fontSize: "0.85rem",
+              boxShadow: "none",
               "&:hover": {
                 borderColor: "primary.main",
                 bgcolor: "rgba(16, 185, 129, 0.08)",
+                boxShadow: "none",
               },
             }}
           >
             + Registrar Futbolista Local
-          </Button>
+          </ActionButton>
         </Box>
       )}
 
@@ -138,7 +109,7 @@ export default function SearchForm({
             my: 6,
           }}
         >
-          <CircularProgress color="primary" size={50} />
+          <LoadingSpinner py={2} />
           <Typography
             variant="caption"
             color="primary"
@@ -150,32 +121,16 @@ export default function SearchForm({
       )}
 
       {/* Mensajes de Error */}
-      {error && (
-        <Alert
-          severity="error"
-          variant="outlined"
-          sx={{
-            maxWidth: "600px",
-            width: "100%",
-            mx: "auto",
-            borderRadius: 3,
-          }}
-        >
-          {error}
-        </Alert>
-      )}
+      <ErrorAlert message={error} sx={{ maxWidth: "600px", width: "100%", mx: "auto" }} />
 
       {/* SELECCIÓN DE COINCIDENCIAS (NOMBRE COMÚN) */}
-      {listaCoincidencias.length > 1 && !jugador && !loading && (
-        <Paper
-          variant="outlined"
+      {matchedPlayers.length > 1 && !player && !loading && (
+        <GlassCard
           sx={{
             p: 3,
-            borderRadius: 4,
             maxWidth: "600px",
             width: "100%",
             mx: "auto",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
             bgcolor: "rgba(11, 21, 40, 0.3)",
           }}
         >
@@ -183,14 +138,14 @@ export default function SearchForm({
             variant="subtitle2"
             sx={{ mb: 2, fontWeight: "bold", color: "primary.light" }}
           >
-            🔍 Se encontraron {listaCoincidencias.length} futbolistas con ese
+            🔍 Se encontraron {matchedPlayers.length} futbolistas con ese
             nombre. Selecciona el correcto:
           </Typography>
           <List>
-            {listaCoincidencias.map((player) => (
-              <ListItem disablePadding key={player.id} sx={{ mb: 1.5 }}>
+            {matchedPlayers.map((item) => (
+              <ListItem disablePadding key={item.id} sx={{ mb: 1.5 }}>
                 <ListItemButton
-                  onClick={() => onSelectPlayer(player)}
+                  onClick={() => onSelectPlayer(item)}
                   sx={{
                     borderRadius: 3,
                     border: "1px solid rgba(255, 255, 255, 0.05)",
@@ -199,13 +154,13 @@ export default function SearchForm({
                   }}
                 >
                   <ListItemAvatar>
-                    <Avatar src={player.foto_url}>
+                    <Avatar src={item.photoUrl || item.foto_url}>
                       <PersonIcon />
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
-                    primary={player.nombre}
-                    secondary={`${player.equipo} • ${player.posicion || "Fútbol profesional"}`}
+                    primary={item.name}
+                    secondary={`${item.club} • ${item.position || "Fútbol profesional"}`}
                     primaryTypographyProps={{
                       fontWeight: 800,
                       fontSize: "0.95rem",
@@ -219,7 +174,7 @@ export default function SearchForm({
               </ListItem>
             ))}
           </List>
-        </Paper>
+        </GlassCard>
       )}
     </Box>
   );

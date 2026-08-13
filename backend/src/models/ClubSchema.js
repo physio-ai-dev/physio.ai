@@ -2,24 +2,24 @@ import { EntitySchema } from "typeorm";
 
 const ClubSchema = new EntitySchema({
   name: "Club",
-  tableName: "clubes",
+  tableName: "clubs",
   columns: {
     id: {
       type: "int",
       primary: true,
       generated: true,
     },
-    nombre: {
+    name: {
       type: "varchar",
       length: 100,
       unique: true,
     },
   },
   relations: {
-    liga: {
-      target: "Liga",
+    league: {
+      target: "League",
       type: "many-to-one",
-      joinColumn: { name: "liga_fk" },
+      joinColumn: { name: "league_id" },
       nullable: true,
     },
   },

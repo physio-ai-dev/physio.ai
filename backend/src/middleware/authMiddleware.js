@@ -25,7 +25,7 @@ export const requireRole = (allowedRoles) => {
       return res.status(401).json({ error: "Usuario no autenticado." });
     }
 
-    const hasRole = allowedRoles.includes(req.user.rol);
+    const hasRole = allowedRoles.includes(req.user.role);
     const hasPremium = allowedRoles.includes("premium") && req.user.subscription_tier === "premium";
 
     if (hasRole || hasPremium) {

@@ -1,27 +1,27 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Typography,
-  Card,
-  CardContent,
   TableContainer,
   Table,
   TableHead,
   TableRow,
   TableCell,
   TableBody,
-  CircularProgress,
-  Alert,
   Chip,
   IconButton,
-  Tooltip
+  Tooltip,
+  Alert
 } from "@mui/material";
 import {
   OpenInNew as OpenInNewIcon,
   MedicalServices as MedicalServicesIcon,
   Dashboard as DashboardIcon
 } from "@mui/icons-material";
-import { api } from "../api/backend";
+import { api } from "../../api/backend";
+import LoadingSpinner from "../Common/Layout/LoadingSpinner";
+import ErrorAlert from "../Common/Feedback/ErrorAlert";
+import GlassCard from "../Common/Layout/GlassCard";
+import PageTitle from "../Common/Typography/PageTitle";
 
 export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlayerPerformance }) {
   const [loading, setLoading] = useState(true);
@@ -29,11 +29,11 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    const cargarHistorial = async () => {
+    const loadHistory = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await api.obtenerHistorialBusquedas();
+        const res = await api.getSearchHistory();
         if (res.status === "success" && Array.isArray(res.data)) {
           setHistory(res.data);
         } else {
@@ -46,16 +46,16 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
       }
     };
 
-    cargarHistorial();
+    loadHistory();
   }, []);
 
   const handleRowClick = (item) => {
     const player = {
-      id: item.jugador_id,
-      nombre: item.jugador_nombre,
-      equipo: item.equipo,
+      id: item.playerId,
+      nombre: item.playerName,
+      equipo: item.clubName,
     };
-    if (item.tipo_buscador === "clinico") {
+    if (item.searchType === "clinico") {
       if (onSelectPlayerClinical) onSelectPlayerClinical(player);
     } else {
       if (onSelectPlayerPerformance) onSelectPlayerPerformance(player);
@@ -63,38 +63,26 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
   };
 
   if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress color="primary" />
-      </Box>
-    );
+    return <LoadingSpinner py={8} />;
   }
 
   if (error) {
-    return (
-      <Alert severity="error" sx={{ borderRadius: 3 }}>
-        {error}
-      </Alert>
-    );
+    return <ErrorAlert message={error} />;
   }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <Box>
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 1, letterSpacing: "-1px" }}>
-          Historial de Búsquedas
-        </Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: 500 }}>
-          Revisa tus últimas consultas clínicas y de rendimiento deportivo. Haz clic en la acción de cualquier registro para cargarlo nuevamente.
-        </Typography>
-      </Box>
+      <PageTitle
+        title="Historial de Búsquedas"
+        subtitle="Revisa tus últimas consultas clínicas y de rendimiento deportivo. Haz clic en la acción de cualquier registro para cargarlo nuevamente."
+      />
 
       {history.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 3 }}>
           Aún no tienes búsquedas en tu historial. Realiza búsquedas clínicas o de rendimiento para verlas aquí.
         </Alert>
       ) : (
-        <Card variant="outlined" sx={{ borderRadius: 4, bgcolor: "rgba(255, 255, 255, 0.01)" }}>
+        <GlassCard>
           <TableContainer>
             <Table sx={{ minWidth: 600 }}>
               <TableHead sx={{ bgcolor: "rgba(255, 255, 255, 0.02)" }}>
@@ -114,31 +102,31 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell sx={{ fontWeight: 700, color: "text.primary" }}>
-                      {item.jugador_nombre}
+                      {item.playerName}
                     </TableCell>
                     <TableCell sx={{ color: "text.secondary", fontWeight: 500 }}>
-                      {item.equipo || "Sin equipo"}
+                      {item.clubName || "Sin equipo"}
                     </TableCell>
                     <TableCell>
                       <Chip
-                        icon={item.tipo_buscador === "clinico" ? <MedicalServicesIcon sx={{ fontSize: "0.9rem !important" }} /> : <DashboardIcon sx={{ fontSize: "0.9rem !important" }} />}
-                        label={item.tipo_buscador === "clinico" ? "Clínico" : "Rendimiento"}
+                        icon={item.searchType === "clinico" ? <MedicalServicesIcon sx={{ fontSize: "0.9rem !important" }} /> : <DashboardIcon sx={{ fontSize: "0.9rem !important" }} />}
+                        label={item.searchType === "clinico" ? "Clínico" : "Rendimiento"}
                         size="small"
                         sx={{
                           height: 22,
                           fontSize: "0.75rem",
                           fontWeight: 700,
-                          bgcolor: item.tipo_buscador === "clinico" ? "rgba(16, 185, 129, 0.1)" : "rgba(96, 165, 250, 0.1)",
-                          color: item.tipo_buscador === "clinico" ? "#10b981" : "#60a5fa",
-                          border: item.tipo_buscador === "clinico" ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(96, 165, 250, 0.2)"
+                          bgcolor: item.searchType === "clinico" ? "rgba(16, 185, 129, 0.1)" : "rgba(96, 165, 250, 0.1)",
+                          color: item.searchType === "clinico" ? "#10b981" : "#60a5fa",
+                          border: item.searchType === "clinico" ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(96, 165, 250, 0.2)"
                         }}
                       />
                     </TableCell>
                     <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem", fontWeight: 500 }}>
-                      {new Date(item.fecha_busqueda).toLocaleString()}
+                      {new Date(item.searchDate).toLocaleString()}
                     </TableCell>
                     <TableCell align="center">
-                      <Tooltip title={`Ver en buscador ${item.tipo_buscador === "clinico" ? "clínico" : "de rendimiento"}`}>
+                      <Tooltip title={`Ver en buscador ${item.searchType === "clinico" ? "clínico" : "de rendimiento"}`}>
                         <IconButton
                           size="small"
                           color="primary"
@@ -154,7 +142,7 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
               </TableBody>
             </Table>
           </TableContainer>
-        </Card>
+        </GlassCard>
       )}
     </Box>
   );

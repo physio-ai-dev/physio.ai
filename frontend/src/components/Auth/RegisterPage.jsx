@@ -2,10 +2,7 @@ import { useState } from "react";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   TextField,
-  Button,
   Grid,
   Alert,
   CircularProgress,
@@ -17,9 +14,12 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
   Lock as LockIcon,
-  Event as CalendarIcon,
+  CalendarMonth as CalendarIcon,
 } from "@mui/icons-material";
-import { api } from "../api/backend";
+import { api } from "../../api/backend";
+import GlassCard from "../Common/Layout/GlassCard";
+import ActionButton from "../Common/Buttons/ActionButton";
+import PageTitle from "../Common/Typography/PageTitle";
 
 export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
   const [formData, setFormData] = useState({
@@ -46,7 +46,6 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
 
     const { username, email, password, passwordConfirm, dob } = formData;
 
-    // 1. Validaciones básicas en el cliente
     if (
       !username.trim() ||
       !email.trim() ||
@@ -77,7 +76,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
     setLoading(true);
 
     try {
-      const response = await api.registrarUsuario(formData);
+      const response = await api.registerUser(formData);
 
       if (response && response.status === "success") {
         setSuccess(
@@ -91,7 +90,6 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
           dob: "",
         });
 
-        // Esperar 2 segundos para mostrar el mensaje de éxito antes de regresar
         setTimeout(() => {
           if (onRegisterSuccess) {
             onRegisterSuccess();
@@ -123,38 +121,38 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
     >
       {/* Botón de regreso */}
       <Box>
-        <Button
+        <ActionButton
+          variant="outlined"
           startIcon={<ArrowBackIcon />}
           onClick={onGoBack}
           sx={{
             color: "text.secondary",
             textTransform: "none",
             fontWeight: 700,
+            borderColor: "transparent",
+            boxShadow: "none",
+            bgcolor: "transparent",
+            "&:hover": {
+              borderColor: "rgba(255, 255, 255, 0.08)",
+              bgcolor: "rgba(255, 255, 255, 0.02)",
+              boxShadow: "none",
+            }
           }}
         >
           Volver
-        </Button>
+        </ActionButton>
       </Box>
 
-      <Card variant="outlined">
-        <CardContent sx={{ p: { xs: 4, sm: 5 } }}>
+      <GlassCard>
+        <Box sx={{ p: { xs: 4, sm: 5 } }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 4 }}>
             <PersonAddIcon color="primary" sx={{ fontSize: 32 }} />
             <Box>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 950, letterSpacing: "-0.5px" }}
-              >
-                Registro
-              </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontWeight: 500, mt: 0.5 }}
-              >
-                Regístrate para acceder a las auditorías personalizadas de
-                Physio.AI
-              </Typography>
+              <PageTitle
+                title="Registro"
+                subtitle="Regístrate para acceder a las auditorías personalizadas de Physio.AI"
+                sx={{ mb: 0 }}
+              />
             </Box>
           </Box>
 
@@ -192,10 +190,12 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               value={formData.username}
               onChange={handleChange}
               disabled={loading}
-              InputProps={{
-                startAdornment: (
-                  <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                  ),
+                }
               }}
             />
 
@@ -208,10 +208,12 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
-              InputProps={{
-                startAdornment: (
-                  <EmailIcon sx={{ color: "text.secondary", mr: 1.5 }} />
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <EmailIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                  ),
+                }
               }}
             />
 
@@ -225,10 +227,12 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               value={formData.dob}
               onChange={handleChange}
               disabled={loading}
-              InputProps={{
-                startAdornment: (
-                  <CalendarIcon sx={{ color: "text.secondary", mr: 1.5 }} />
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <CalendarIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                  ),
+                }
               }}
             />
 
@@ -242,10 +246,12 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               value={formData.password}
               onChange={handleChange}
               disabled={loading}
-              InputProps={{
-                startAdornment: (
-                  <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                  ),
+                }
               }}
             />
 
@@ -259,10 +265,12 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               value={formData.passwordConfirm}
               onChange={handleChange}
               disabled={loading}
-              InputProps={{
-                startAdornment: (
-                  <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                  ),
+                }
               }}
             />
 
@@ -270,32 +278,41 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
 
             {/* Acciones */}
             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-              <Button
+              <ActionButton
                 variant="outlined"
-                color="inherit"
                 disabled={loading}
                 onClick={onGoBack}
-                sx={{ px: 3, py: 1, borderRadius: 3 }}
+                sx={{
+                  px: 3,
+                  py: 1,
+                  borderColor: "rgba(255, 255, 255, 0.1)",
+                  color: "text.secondary",
+                  boxShadow: "none",
+                  bgcolor: "transparent",
+                  "&:hover": {
+                    borderColor: "rgba(255, 255, 255, 0.2)",
+                    bgcolor: "rgba(255, 255, 255, 0.02)",
+                    boxShadow: "none",
+                  }
+                }}
               >
                 Cancelar
-              </Button>
-              <Button
+              </ActionButton>
+              <ActionButton
                 type="submit"
-                variant="contained"
-                color="primary"
                 disabled={loading}
-                sx={{ px: 4, py: 1, borderRadius: 3 }}
+                sx={{ px: 4, py: 1 }}
               >
                 {loading ? (
                   <CircularProgress size={24} color="inherit" />
                 ) : (
                   "Registrarse"
                 )}
-              </Button>
+              </ActionButton>
             </Box>
           </Box>
-        </CardContent>
-      </Card>
+        </Box>
+      </GlassCard>
     </Box>
   );
 }

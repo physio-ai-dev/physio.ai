@@ -2,12 +2,12 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import rateLimit from "express-rate-limit";
-import AppDataSource from "./config/database.js";
+import AppDataSource, { initializeDatabaseAddons } from "./config/database.js";
 import playerRoutes from "./routes/playerRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
-import { obtenerEstadisticas, obtenerAnalisisIA } from "./controllers/dashboardController.js";
+import { getPlayerStats, getPlayerPerformanceAIAnalysis } from "./controllers/dashboardController.js";
 import { authenticateToken } from "./middleware/authMiddleware.js";
 
 const app = express();
@@ -45,8 +45,8 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stripe", stripeRoutes);
 
-app.get("/api/stats", authenticateToken, obtenerEstadisticas);
-app.post("/api/analysis", authenticateToken, obtenerAnalisisIA);
+app.get("/api/stats", authenticateToken, getPlayerStats);
+app.post("/api/analysis", authenticateToken, getPlayerPerformanceAIAnalysis);
 
 // SCRUM-90 & 91: Manejador Global de Error
 app.use((err, req, res, next) => {
@@ -62,8 +62,9 @@ app.use((err, req, res, next) => {
   });
 });
 AppDataSource.initialize()
-  .then(() => {
+  .then(async () => {
     console.log("✅ Base de datos PostgreSQL conectada exitosamente");
+    await initializeDatabaseAddons();
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`);

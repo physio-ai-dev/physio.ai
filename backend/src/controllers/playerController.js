@@ -26,26 +26,26 @@ async function resolveRelations(teamName, positionName, leagueName) {
     resolvedPositionName = "Delantero";
   }
 
-  let dbPosition = await positionRepository.findOne({ where: { nombre: resolvedPositionName } });
+  let dbPosition = await positionRepository.findOne({ where: { name: resolvedPositionName } });
   if (!dbPosition) {
-    dbPosition = await positionRepository.save(positionRepository.create({ nombre: resolvedPositionName }));
+    dbPosition = await positionRepository.save(positionRepository.create({ name: resolvedPositionName }));
   }
 
   const resolvedLeagueName = leagueName || "Local / Otro";
-  let dbLeague = await leagueRepository.findOne({ where: { nombre: resolvedLeagueName } });
+  let dbLeague = await leagueRepository.findOne({ where: { name: resolvedLeagueName } });
   if (!dbLeague) {
-    dbLeague = await leagueRepository.save(leagueRepository.create({ nombre: resolvedLeagueName, pais: "Importado" }));
+    dbLeague = await leagueRepository.save(leagueRepository.create({ name: resolvedLeagueName, country: "Importado" }));
   }
 
   const resolvedClubName = teamName || "Club Desconocido";
-  let dbClub = await clubRepository.findOne({ where: { nombre: resolvedClubName }, relations: ["liga"] });
+  let dbClub = await clubRepository.findOne({ where: { name: resolvedClubName }, relations: ["league"] });
   if (!dbClub) {
     dbClub = await clubRepository.save(clubRepository.create({
-      nombre: resolvedClubName,
-      liga: dbLeague,
+      name: resolvedClubName,
+      league: dbLeague,
     }));
-  } else if (!dbClub.liga || dbClub.liga.id !== dbLeague.id) {
-    dbClub.liga = dbLeague;
+  } else if (!dbClub.league || dbClub.league.id !== dbLeague.id) {
+    dbClub.league = dbLeague;
     await clubRepository.save(dbClub);
   }
 
@@ -62,13 +62,13 @@ export const searchPlayer = async (req, res) => {
 
     const userEmail = req.headers["x-user-email"];
     let isPremium = false;
-    let identificador = req.ip || req.headers["x-forwarded-for"] || "127.0.0.1";
+    let identifier = req.ip || req.headers["x-forwarded-for"] || "127.0.0.1";
 
     if (userEmail) {
       const userRepository = AppDataSource.getRepository(UserSchema);
       const user = await userRepository.findOne({ where: { email: userEmail } });
       if (user) {
-        identificador = user.email;
+        identifier = user.email;
         if (user.subscription_tier === "premium") {
           isPremium = true;
         }
@@ -78,23 +78,23 @@ export const searchPlayer = async (req, res) => {
     if (!isPremium) {
       const limitRepository = AppDataSource.getRepository(SearchLimitSchema);
       const today = new Date().toISOString().split("T")[0];
-      let limitLog = await limitRepository.findOne({ where: { identificador } });
+      let limitLog = await limitRepository.findOne({ where: { identifier } });
 
       if (limitLog) {
-        if (limitLog.ultima_busqueda === today && limitLog.cantidad >= 3) {
+        if (limitLog.last_search === today && limitLog.quantity >= 3) {
           return res.status(429).json({
             status: "limit_reached",
             error: "Has alcanzado el límite de 3 búsquedas gratuitas por día."
           });
         }
-        limitLog.cantidad = limitLog.ultima_busqueda === today ? limitLog.cantidad + 1 : 1;
-        limitLog.ultima_busqueda = today;
+        limitLog.quantity = limitLog.last_search === today ? limitLog.quantity + 1 : 1;
+        limitLog.last_search = today;
         await limitRepository.save(limitLog);
       } else {
         await limitRepository.save(limitRepository.create({
-          identificador,
-          cantidad: 1,
-          ultima_busqueda: today
+          identifier,
+          quantity: 1,
+          last_search: today
         }));
       }
     }
@@ -106,34 +106,34 @@ export const searchPlayer = async (req, res) => {
     
     const localPlayers = await playerRepository.createQueryBuilder("player")
       .leftJoinAndSelect("player.club", "club")
-      .leftJoinAndSelect("club.liga", "liga")
-      .leftJoinAndSelect("player.posicion", "posicion")
-      .where("player.nombre ILIKE :name", { name: `%${cleanSearchName}%` })
+      .leftJoinAndSelect("club.league", "league")
+      .leftJoinAndSelect("player.position", "position")
+      .where("player.name ILIKE :name", { name: `%${cleanSearchName}%` })
       .getMany();
 
     if (localPlayers && localPlayers.length > 0) {
       const savedPlayers = [];
 
       for (const player of localPlayers) {
-        const lesiones = await injuryRepository.find({
-          where: { jugador_id: player.id },
+        const injuries = await injuryRepository.find({
+          where: { player_id: player.id },
           order: { id: "DESC" },
         });
 
         savedPlayers.push({
           id: player.id,
-          api_id: player.api_id,
-          nombre: player.nombre,
-          equipo: player.club?.nombre || "Equipo Desconocido",
-          posicion: player.posicion?.nombre || "Sin Posición",
-          foto_url: player.foto_url,
-          fecha_nacimiento: player.fecha_nacimiento,
-          liga: player.club?.liga?.nombre || "Liga Desconocida",
-          estatura: player.estatura || "Sin estatura",
-          valor_mercado: player.valor_mercado || "No disponible",
-          created_at: player.created_at,
-          lesiones,
-          reporte_ia: lesiones[0] || null,
+          apiId: player.api_id,
+          name: player.name,
+          club: player.club?.name || "Equipo Desconocido",
+          position: player.position?.name || "Sin Posición",
+          photoUrl: player.photo_url,
+          birthdate: player.birthdate,
+          league: player.club?.league?.name || "Liga Desconocida",
+          height: player.height || "Sin estatura",
+          marketValue: player.market_value || "No disponible",
+          createdAt: player.created_at,
+          injuries: injuries,
+          aiReport: injuries[0] || null,
         });
       }
 
@@ -158,7 +158,7 @@ export const searchPlayer = async (req, res) => {
 
       let player = await playerRepository.findOne({
         where: { api_id: apiPlayer.id },
-        relations: ["club", "club.liga", "posicion"],
+        relations: ["club", "club.league", "position"],
       });
 
       const { dbClub, dbPosition } = await resolveRelations(
@@ -170,40 +170,40 @@ export const searchPlayer = async (req, res) => {
       if (!player) {
         player = playerRepository.create({
           api_id: apiPlayer.id,
-          nombre: apiPlayer.name,
+          name: apiPlayer.name,
           club: dbClub,
-          posicion: dbPosition,
-          foto_url: apiPlayer.photo || null,
-          fecha_nacimiento: apiPlayer.birth?.date || null,
-          estatura: apiPlayer.height || "Sin estatura",
-          valor_mercado: "No disponible",
+          position: dbPosition,
+          photo_url: apiPlayer.photo || null,
+          birthdate: apiPlayer.birth?.date || null,
+          height: apiPlayer.height || "Sin estatura",
+          market_value: "No disponible",
         });
 
         await playerRepository.save(player);
       } else {
         let updated = false;
-        if (apiPlayer.photo && !player.foto_url) {
-          player.foto_url = apiPlayer.photo;
+        if (apiPlayer.photo && !player.photo_url) {
+          player.photo_url = apiPlayer.photo;
           updated = true;
         }
-        if (apiPlayer.birth?.date && !player.fecha_nacimiento) {
-          player.fecha_nacimiento = apiPlayer.birth.date;
+        if (apiPlayer.birth?.date && !player.birthdate) {
+          player.birthdate = apiPlayer.birth.date;
           updated = true;
         }
         if (dbClub && (!player.club || player.club.id !== dbClub.id)) {
           player.club = dbClub;
           updated = true;
         }
-        if (dbPosition && (!player.posicion || player.posicion.id !== dbPosition.id)) {
-          player.posicion = dbPosition;
+        if (dbPosition && (!player.position || player.position.id !== dbPosition.id)) {
+          player.position = dbPosition;
           updated = true;
         }
-        if (apiPlayer.height && !player.estatura) {
-          player.estatura = apiPlayer.height;
+        if (apiPlayer.height && !player.height) {
+          player.height = apiPlayer.height;
           updated = true;
         }
-        if (!player.valor_mercado) {
-          player.valor_mercado = "No disponible";
+        if (!player.market_value) {
+          player.market_value = "No disponible";
           updated = true;
         }
         if (updated) {
@@ -211,25 +211,25 @@ export const searchPlayer = async (req, res) => {
         }
       }
 
-      const lesiones = await injuryRepository.find({
-        where: { jugador_id: player.id },
+      const injuries = await injuryRepository.find({
+        where: { player_id: player.id },
         order: { id: "DESC" },
       });
 
       savedPlayers.push({
         id: player.id,
-        api_id: player.api_id,
-        nombre: player.nombre,
-        equipo: player.club?.nombre || "Equipo Desconocido",
-        posicion: player.posicion?.nombre || "Sin Posición",
-        foto_url: player.foto_url,
-        fecha_nacimiento: player.fecha_nacimiento,
-        liga: player.club?.liga?.nombre || "Liga Desconocida",
-        estatura: player.estatura || "Sin estatura",
-        valor_mercado: player.valor_mercado || "No disponible",
-        created_at: player.created_at,
-        lesiones,
-        reporte_ia: lesiones[0] || null,
+        apiId: player.api_id,
+        name: player.name,
+        club: player.club?.name || "Equipo Desconocido",
+        position: player.position?.name || "Sin Posición",
+        photoUrl: player.photo_url,
+        birthdate: player.birthdate,
+        league: player.club?.league?.name || "Liga Desconocida",
+        height: player.height || "Sin estatura",
+        marketValue: player.market_value || "No disponible",
+        createdAt: player.created_at,
+        injuries: injuries,
+        aiReport: injuries[0] || null,
       });
     }
 

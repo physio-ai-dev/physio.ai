@@ -1,85 +1,84 @@
 -- =======================================================
--- PASO 1: Crear la base de datos (Ejecutar conectado a la BD por defecto 'postgres')
--- =======================================================
--- CREATE DATABASE physio_ai;
--- =======================================================
--- PASO 2: Conectarse a la BD 'physio_db' y ejecutar el esquema:
+-- STEP 1: Database creation schema
 -- =======================================================
 
-DROP TABLE IF EXISTS lesiones CASCADE;
-DROP TABLE IF EXISTS jugadores CASCADE;
-DROP TABLE IF EXISTS clubes CASCADE;
-DROP TABLE IF EXISTS posiciones CASCADE;
-DROP TABLE IF EXISTS ligas CASCADE;
+DROP TABLE IF EXISTS injuries CASCADE;
+DROP TABLE IF EXISTS players CASCADE;
+DROP TABLE IF EXISTS clubs CASCADE;
+DROP TABLE IF EXISTS positions CASCADE;
+DROP TABLE IF EXISTS leagues CASCADE;
+DROP TABLE IF EXISTS searches CASCADE;
+DROP TABLE IF EXISTS top_searched_players CASCADE;
+DROP TABLE IF EXISTS anonymous_search_limits CASCADE;
+DROP TABLE IF EXISTS audit_logs CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
--- 1. POSICIONES (con CHECK constraint para restringir a los roles definidos)
-CREATE TABLE posiciones (
+-- 1. POSITIONS
+CREATE TABLE positions (
     id SERIAL PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL UNIQUE,
-    CONSTRAINT chk_posicion_nombre CHECK (nombre IN ('Arquero', 'Defensa', 'Mediocampista', 'Delantero'))
+    name VARCHAR(50) NOT NULL UNIQUE,
+    CONSTRAINT chk_position_name CHECK (name IN ('Arquero', 'Defensa', 'Mediocampista', 'Delantero'))
 );
 
--- 2. LIGAS
-CREATE TABLE ligas (
+-- 2. LEAGUES
+CREATE TABLE leagues (
     id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL UNIQUE,
-    pais VARCHAR(100)
+    name VARCHAR(100) NOT NULL UNIQUE,
+    country VARCHAR(100)
 );
 
--- 3. CLUBES
-CREATE TABLE clubes (
+-- 3. CLUBS
+CREATE TABLE clubs (
     id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL UNIQUE,
-    liga_fk INTEGER REFERENCES ligas(id) ON DELETE SET NULL
+    name VARCHAR(100) NOT NULL UNIQUE,
+    league_id INTEGER REFERENCES leagues(id) ON DELETE SET NULL
 );
 
--- 4. JUGADORES
-CREATE TABLE jugadores (
+-- 4. PLAYERS
+CREATE TABLE players (
     id SERIAL PRIMARY KEY,
-    api_id INTEGER UNIQUE,      -- El ID que provee la API de fútbol para evitar duplicados (opcional para local)
-    nombre VARCHAR(150) NOT NULL,
-    club_fk INTEGER REFERENCES clubes(id) ON DELETE SET NULL,
-    posicion_fk INTEGER REFERENCES posiciones(id) ON DELETE SET NULL,
-    foto_url TEXT,
-    fecha_nacimiento DATE,
-    estatura VARCHAR(50),
-    valor_mercado VARCHAR(100),
+    api_id INTEGER UNIQUE,
+    name VARCHAR(150) NOT NULL,
+    club_id INTEGER REFERENCES clubs(id) ON DELETE SET NULL,
+    position_id INTEGER REFERENCES positions(id) ON DELETE SET NULL,
+    photo_url TEXT,
+    birthdate DATE,
+    height VARCHAR(50),
+    market_value VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. LESIONES
-CREATE TABLE lesiones (
+-- 5. INJURIES
+CREATE TABLE injuries (
     id SERIAL PRIMARY KEY,
-    jugador_id INTEGER NOT NULL,
-    tipo_lesion VARCHAR(255) NOT NULL,
-    dias_estimados_club INTEGER NOT NULL,
-    tiempo_clinico_ia INTEGER,        -- Días promedio en número entero devuelto por Gemini
-    analisis_comparativo TEXT,        -- Informe de la IA
-    estado VARCHAR(50) DEFAULT 'En Recuperación',
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    player_id INTEGER NOT NULL,
+    injury_type VARCHAR(255) NOT NULL,
+    estimated_days_club INTEGER NOT NULL,
+    clinical_time_ai INTEGER,
+    comparative_analysis TEXT,
+    status VARCHAR(50) DEFAULT 'En Recuperación',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    -- Llave foránea vinculada a jugadores. Si se borra el jugador, se borran sus lesiones.
-    CONSTRAINT fk_jugador 
-        FOREIGN KEY (jugador_id) 
-        REFERENCES jugadores(id) 
+    CONSTRAINT fk_player 
+        FOREIGN KEY (player_id) 
+        REFERENCES players(id) 
         ON DELETE CASCADE
 );
 
--- ÍNDICES DE RENDIMIENTO Y RELACIONES
-CREATE INDEX idx_jugadores_api_id ON jugadores(api_id);
-CREATE INDEX idx_lesiones_jugador_id ON lesiones(jugador_id);
-CREATE INDEX idx_jugadores_club_fk ON jugadores(club_fk);
-CREATE INDEX idx_clubes_liga_fk ON clubes(liga_fk);
+-- INDEXES
+CREATE INDEX idx_players_api_id ON players(api_id);
+CREATE INDEX idx_injuries_player_id ON injuries(player_id);
+CREATE INDEX idx_players_club_id ON players(club_id);
+CREATE INDEX idx_clubs_league_id ON clubs(league_id);
 
--- Semilla de Posiciones por Defecto
-INSERT INTO posiciones (nombre) VALUES 
+-- Seeds
+INSERT INTO positions (name) VALUES 
 ('Arquero'),
 ('Defensa'),
 ('Mediocampista'),
 ('Delantero');
 
--- Semilla de Ligas Top por Defecto
-INSERT INTO ligas (nombre, pais) VALUES 
+INSERT INTO leagues (name, country) VALUES 
 ('Premier League', 'Inglaterra'),
 ('LaLiga', 'España'),
 ('Serie A', 'Italia'),
@@ -87,77 +86,66 @@ INSERT INTO ligas (nombre, pais) VALUES
 ('Ligue 1', 'Francia');
 
 -- ==========================================
--- UDF: Función para calcular edad (SCRUM-52)
+-- UDF: Calculate age
 -- ==========================================
-CREATE OR REPLACE FUNCTION calcular_edad(fecha_nacimiento VARCHAR)
+CREATE OR REPLACE FUNCTION calculate_age(birthdate DATE)
 RETURNS INTEGER AS $$
 DECLARE
-    fecha_date DATE;
-    edad INTEGER;
+    calculated_age INTEGER;
 BEGIN
-    IF fecha_nacimiento IS NULL OR fecha_nacimiento = '' THEN
+    IF birthdate IS NULL THEN
         RETURN NULL;
     END IF;
-    
-    BEGIN
-        fecha_date := fecha_nacimiento::DATE;
-    EXCEPTION WHEN OTHERS THEN
-        RETURN NULL;
-    END;
-    
-    edad := DATE_PART('year', AGE(CURRENT_DATE, fecha_date));
-    RETURN edad;
+    calculated_age := date_part('year', age(birthdate));
+    RETURN calculated_age;
 END;
 $$ LANGUAGE plpgsql;
 
 -- ==========================================
--- VISTA CONSOLIDADA DE LESIONES (SCRUM-51)
+-- VIEW: Injury Summary
 -- ==========================================
-CREATE OR REPLACE VIEW vista_resumen_lesiones AS
+CREATE OR REPLACE VIEW view_injury_summary AS
 SELECT 
-    TO_CHAR(l.fecha_registro, 'YYYY-MM') AS mes,
-    c.nombre AS club,
-    p.nombre AS posicion,
-    COUNT(l.id) AS total_lesiones,
-    SUM(l.dias_estimados_club) AS total_dias_club,
-    SUM(l.tiempo_clinico_ia) AS total_dias_ia
-FROM lesiones l
-JOIN jugadores j ON l.jugador_id = j.id
-LEFT JOIN clubes c ON j.club_fk = c.id
-LEFT JOIN posiciones p ON j.posicion_fk = p.id
-GROUP BY TO_CHAR(l.fecha_registro, 'YYYY-MM'), c.nombre, p.nombre
-ORDER BY mes DESC, total_lesiones DESC;
+    TO_CHAR(i.created_at, 'YYYY-MM') AS month,
+    c.name AS club,
+    p.name AS position,
+    COUNT(i.id) AS total_injuries,
+    SUM(i.estimated_days_club) AS total_days_club,
+    SUM(i.clinical_time_ai) AS total_days_ai
+FROM injuries i
+JOIN players pl ON i.player_id = pl.id
+LEFT JOIN clubs c ON pl.club_id = c.id
+LEFT JOIN positions p ON pl.position_id = p.id
+GROUP BY TO_CHAR(i.created_at, 'YYYY-MM'), c.name, p.name
+ORDER BY month DESC, total_injuries DESC;
 
 -- ==========================================
--- SISTEMA DE AUDITORÍA Y TRIGGERS (SCRUM-46)
+-- AUDIT MODULE
 -- ==========================================
-
--- Tabla de Auditoría de Datos (SCRUM-47)
-CREATE TABLE IF NOT EXISTS auditoria_datos (
+CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,
-    tabla_nombre VARCHAR(100) NOT NULL,
-    operacion VARCHAR(20) NOT NULL,
-    registro_id INTEGER NOT NULL,
+    table_name VARCHAR(100) NOT NULL,
+    operation VARCHAR(20) NOT NULL,
+    record_id INTEGER NOT NULL,
     valor_anterior JSONB,
     valor_nuevo JSONB,
-    usuario VARCHAR(100) DEFAULT CURRENT_USER,
-    fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    user_email VARCHAR(100) DEFAULT CURRENT_USER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Procedimiento Almacenado de Auditoría (SCRUM-48)
-CREATE OR REPLACE FUNCTION log_auditoria_datos()
+CREATE OR REPLACE FUNCTION log_audit_changes()
 RETURNS TRIGGER AS $$
 BEGIN
     IF (TG_OP = 'INSERT') THEN
-        INSERT INTO auditoria_datos (tabla_nombre, operacion, registro_id, valor_anterior, valor_nuevo)
+        INSERT INTO audit_logs (table_name, operation, record_id, valor_anterior, valor_nuevo)
         VALUES (TG_TABLE_NAME, TG_OP, NEW.id, NULL, to_jsonb(NEW));
         RETURN NEW;
     ELSIF (TG_OP = 'UPDATE') THEN
-        INSERT INTO auditoria_datos (tabla_nombre, operacion, registro_id, valor_anterior, valor_nuevo)
+        INSERT INTO audit_logs (table_name, operation, record_id, valor_anterior, valor_nuevo)
         VALUES (TG_TABLE_NAME, TG_OP, NEW.id, to_jsonb(OLD), to_jsonb(NEW));
         RETURN NEW;
     ELSIF (TG_OP = 'DELETE') THEN
-        INSERT INTO auditoria_datos (tabla_nombre, operacion, registro_id, valor_anterior, valor_nuevo)
+        INSERT INTO audit_logs (table_name, operation, record_id, valor_anterior, valor_nuevo)
         VALUES (TG_TABLE_NAME, TG_OP, OLD.id, to_jsonb(OLD), NULL);
         RETURN OLD;
     END IF;
@@ -165,97 +153,130 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Definir Triggers de Auditoría (SCRUM-49)
-CREATE OR REPLACE TRIGGER trigger_auditoria_jugadores
-AFTER INSERT OR UPDATE OR DELETE ON jugadores
+CREATE OR REPLACE TRIGGER trigger_audit_players
+AFTER INSERT OR UPDATE OR DELETE ON players
 FOR EACH ROW
-EXECUTE FUNCTION log_auditoria_datos();
+EXECUTE FUNCTION log_audit_changes();
 
-CREATE OR REPLACE TRIGGER trigger_auditoria_lesiones
-AFTER INSERT OR UPDATE OR DELETE ON lesiones
+CREATE OR REPLACE TRIGGER trigger_audit_injuries
+AFTER INSERT OR UPDATE OR DELETE ON injuries
 FOR EACH ROW
-EXECUTE FUNCTION log_auditoria_datos();
+EXECUTE FUNCTION log_audit_changes();
 
 -- ==========================================
--- SISTEMA DE HISTORIAL Y TOP BÚSQUEDAS
+-- USERS & SEARCH LOG MODULE
 -- ==========================================
-
--- Tabla de Usuarios
-CREATE TABLE IF NOT EXISTS usuarios (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     dob DATE NOT NULL,
-    rol VARCHAR(50) DEFAULT 'usuario',
+    role VARCHAR(50) DEFAULT 'user',
     subscription_tier VARCHAR(50) DEFAULT 'free',
+    stripe_customer_id VARCHAR(255) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insertar usuario invitado por defecto
-INSERT INTO usuarios (username, email, password, dob, rol, subscription_tier) 
+INSERT INTO users (username, email, password, dob, role, subscription_tier) 
 VALUES ('Invitado', 'invitado@physio.ai', 'no-password-hash', '2000-01-01', 'invitado', 'free') 
 ON CONFLICT (email) DO NOTHING;
 
--- Tabla de Historial de Búsquedas
-CREATE TABLE IF NOT EXISTS busquedas (
+CREATE TABLE IF NOT EXISTS searches (
     id SERIAL PRIMARY KEY,
-    usuario_id INTEGER REFERENCES usuarios(id) ON DELETE CASCADE,
-    jugador_id INTEGER REFERENCES jugadores(id) ON DELETE CASCADE,
-    tipo_buscador VARCHAR(50) DEFAULT 'clinico',
-    fecha_busqueda TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    player_id INTEGER REFERENCES players(id) ON DELETE CASCADE,
+    search_type VARCHAR(50) DEFAULT 'clinico',
+    search_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla del Top de Jugadores Más Buscados
-CREATE TABLE IF NOT EXISTS top_jugadores_buscados (
-    jugador_id INTEGER PRIMARY KEY REFERENCES jugadores(id) ON DELETE CASCADE,
-    nombre VARCHAR(150) NOT NULL,
-    cantidad_busquedas INTEGER DEFAULT 1
+CREATE TABLE IF NOT EXISTS top_searched_players (
+    player_id INTEGER PRIMARY KEY REFERENCES players(id) ON DELETE CASCADE,
+    name VARCHAR(150) NOT NULL,
+    search_count INTEGER DEFAULT 1
 );
 
--- Función del Trigger para actualizar el top
-CREATE OR REPLACE FUNCTION actualizar_top_busquedas()
+CREATE OR REPLACE FUNCTION update_top_searches()
 RETURNS TRIGGER AS $$
 DECLARE
-    jugador_nombre VARCHAR(150);
+    player_name VARCHAR(150);
 BEGIN
-    SELECT nombre INTO jugador_nombre FROM jugadores WHERE id = NEW.jugador_id;
+    SELECT name INTO player_name FROM players WHERE id = NEW.player_id;
     
-    INSERT INTO top_jugadores_buscados (jugador_id, nombre, cantidad_busquedas)
-    VALUES (NEW.jugador_id, jugador_nombre, 1)
-    ON CONFLICT (jugador_id) 
-    DO UPDATE SET cantidad_busquedas = top_jugadores_buscados.cantidad_busquedas + 1;
+    INSERT INTO top_searched_players (player_id, name, search_count)
+    VALUES (NEW.player_id, player_name, 1)
+    ON CONFLICT (player_id) 
+    DO UPDATE SET search_count = top_searched_players.search_count + 1;
     
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger asociado a la inserción en búsquedas
-CREATE OR REPLACE TRIGGER trigger_nueva_busqueda
-AFTER INSERT ON busquedas
+CREATE OR REPLACE TRIGGER trigger_new_search
+AFTER INSERT ON searches
 FOR EACH ROW
-EXECUTE FUNCTION actualizar_top_busquedas();
+EXECUTE FUNCTION update_top_searches();
 
--- Tabla para limitar el uso a usuarios invitados y gratis
-CREATE TABLE limite_busquedas_anonimas (
-    identificador VARCHAR(255) PRIMARY KEY,
-    cantidad INTEGER DEFAULT 0,
-    ultima_busqueda DATE DEFAULT CURRENT_DATE
+CREATE TABLE anonymous_search_limits (
+    identifier VARCHAR(255) PRIMARY KEY,
+    quantity INTEGER DEFAULT 0,
+    last_search DATE DEFAULT CURRENT_DATE
 );
 
--- Vista del Historial de Búsquedas Consolidado
-CREATE OR REPLACE VIEW vista_historial_busquedas AS
+CREATE OR REPLACE VIEW view_search_history AS
 SELECT
-    b.id,
-    b.usuario_id,
-    u.email AS usuario_email,
-    b.jugador_id,
-    j.nombre AS jugador_nombre,
-    c.nombre AS equipo,
-    b.tipo_buscador,
-    b.fecha_busqueda
-FROM busquedas b
-JOIN usuarios u ON u.id = b.usuario_id
-JOIN jugadores j ON j.id = b.jugador_id
-LEFT JOIN clubes c ON j.club_fk = c.id;
+    s.id,
+    s.user_id,
+    u.email AS user_email,
+    s.player_id,
+    pl.name AS player_name,
+    c.name AS club_name,
+    s.search_type,
+    s.search_date
+FROM searches s
+JOIN users u ON u.id = s.user_id
+JOIN players pl ON pl.id = s.player_id
+LEFT JOIN clubs c ON pl.club_id = c.id;
+
+-- =======================================================
+-- STEP 1.4: ADD AUDIT TRIGGER TO THIRD MAIN ENTITY (users)
+-- =======================================================
+CREATE OR REPLACE TRIGGER trigger_audit_users
+AFTER INSERT OR UPDATE OR DELETE ON users
+FOR EACH ROW
+EXECUTE FUNCTION log_audit_changes();
+
+-- =======================================================
+-- STEP 1.5: ADD SECOND COMPLEX BI VIEW (view_player_popularity_report)
+-- =======================================================
+CREATE OR REPLACE VIEW view_player_popularity_report AS
+SELECT 
+    pl.id AS player_id,
+    pl.name AS player_name,
+    c.name AS club_name,
+    pos.name AS position_name,
+    COUNT(s.id) AS total_searches,
+    COUNT(CASE WHEN s.search_type = 'clinico' THEN 1 END) AS clinical_searches,
+    COUNT(CASE WHEN s.search_type = 'rendimiento' THEN 1 END) AS performance_searches
+FROM players pl
+LEFT JOIN searches s ON s.player_id = pl.id
+LEFT JOIN clubs c ON pl.club_id = c.id
+LEFT JOIN positions pos ON pl.position_id = pos.id
+GROUP BY pl.id, pl.name, c.name, pos.name;
+
+-- =======================================================
+-- STEP 1.6: RBAC SECURITY CONFIGURATION FOR physiodb_user
+-- =======================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'physiodb_user') THEN
+        CREATE ROLE physiodb_user WITH LOGIN PASSWORD 'physiodb_pass';
+    END IF;
+END
+$$;
+
+-- Grant permissions to physiodb_user
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO physiodb_user;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO physiodb_user;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO physiodb_user;
