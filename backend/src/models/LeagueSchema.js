@@ -1,19 +1,20 @@
 import { EntitySchema } from "typeorm";
 
 const LeagueSchema = new EntitySchema({
-  name: "Liga",
-  tableName: "ligas",
+  name: "League",
+  tableName: "leagues",
   columns: {
     id: {
       type: "int",
       primary: true,
       generated: true,
     },
-    nombre: {
+    name: {
       type: "varchar",
       length: 100,
+      unique: true,
     },
-    pais: {
+    country: {
       type: "varchar",
       length: 100,
       nullable: true,

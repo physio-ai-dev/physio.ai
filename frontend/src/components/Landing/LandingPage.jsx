@@ -3,10 +3,7 @@ import {
   Box,
   Container,
   Typography,
-  Button,
   Grid,
-  Card,
-  CardContent,
   Chip,
   AppBar,
   Toolbar,
@@ -21,8 +18,10 @@ import PsychologyIcon from "@mui/icons-material/Psychology";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import GlassCard from "../Common/Layout/GlassCard";
+import ActionButton from "../Common/Buttons/ActionButton";
+import PageTitle from "../Common/Typography/PageTitle";
 
-// Configuración de tema oscuro alineada a la consistencia visual del sistema
 const darkTheme = createTheme({
   palette: {
     mode: "dark",
@@ -43,28 +42,9 @@ const darkTheme = createTheme({
   typography: {
     fontFamily: '"Outfit", "Inter", "Roboto", sans-serif',
   },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          textTransform: "none",
-          fontWeight: 700,
-          fontSize: "1rem",
-          letterSpacing: "0.5px",
-        },
-      },
-    },
-  },
 });
 
 export default function LandingPage({ onStart, onRegister, onGoSearch }) {
-  /* ==========================================================================
-     SCRUM-57: Datos de los bloques informativos inferiores (Características Premium)
-     - Auditoría médica por IA
-     - Analíticas avanzadas
-     - Control de suscripciones
-     ========================================================================== */
   const caracteristicasPremium = [
     {
       icono: <PsychologyIcon sx={{ fontSize: 36, color: "#10b981" }} />,
@@ -131,35 +111,31 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
 
             {/* Acceso rápido desde Navbar */}
             <Box sx={{ display: "flex", gap: 2 }}>
-              <Button
+              <ActionButton
                 variant="outlined"
-                color="inherit"
                 onClick={onRegister}
                 sx={{
                   borderRadius: 16,
-                  textTransform: "none",
-                  fontWeight: 700,
                   px: 3,
+                  borderColor: "rgba(255, 255, 255, 0.15)",
+                  color: "text.primary",
+                  boxShadow: "none",
+                  bgcolor: "transparent",
+                  "&:hover": {
+                    borderColor: "rgba(255, 255, 255, 0.25)",
+                    bgcolor: "rgba(255, 255, 255, 0.02)",
+                    boxShadow: "none",
+                  }
                 }}
               >
                 Registrarse
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
+              </ActionButton>
+              <ActionButton
                 onClick={onStart}
                 endIcon={<ArrowForwardIcon />}
-                sx={{
-                  boxShadow: "0 4px 14px 0 rgba(16, 185, 129, 0.2)",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  "&:hover": {
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 6px 20px 0 rgba(16, 185, 129, 0.4)",
-                  },
-                }}
               >
                 Iniciar Sesión
-              </Button>
+              </ActionButton>
             </Box>
           </Toolbar>
         </AppBar>
@@ -227,9 +203,7 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
 
             {/* Botón principal de CTA - Acceso Directo al Buscador */}
             <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ pt: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
+              <ActionButton
                 size="large"
                 onClick={onGoSearch || onStart}
                 endIcon={<ArrowForwardIcon />}
@@ -238,19 +212,15 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
                   py: 1.8,
                   fontSize: "1.1rem",
                   boxShadow: "0 8px 25px 0 rgba(16, 185, 129, 0.3)",
-                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                   "&:hover": {
                     transform: "translateY(-3px)",
                     boxShadow: "0 12px 30px 0 rgba(16, 185, 129, 0.5)",
                     bgcolor: "primary.light",
                   },
-                  "&:active": {
-                    transform: "translateY(0)",
-                  },
                 }}
               >
                 Ingresar al Buscador Clínico
-              </Button>
+              </ActionButton>
             </Stack>
           </Stack>
         </Container>
@@ -260,14 +230,9 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
           <Grid container spacing={4}>
             {caracteristicasPremium.map((item, index) => (
               <Grid item xs={12} md={4} key={index}>
-                <Card
-                  variant="outlined"
+                <GlassCard
                   sx={{
                     height: "100%",
-                    borderRadius: 5,
-                    bgcolor: "#0b1528c0",
-                    borderColor: "rgba(255, 255, 255, 0.06)",
-                    backdropFilter: "blur(20px)",
                     transition: "all 0.3s ease",
                     "&:hover": {
                       transform: "translateY(-6px)",
@@ -276,7 +241,7 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
                     },
                   }}
                 >
-                  <CardContent sx={{ p: 4 }}>
+                  <Box sx={{ p: 4 }}>
                     <Box sx={{ mb: 2.5 }}>{item.icono}</Box>
                     <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.5 }}>
                       {item.titulo}
@@ -288,8 +253,8 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
                     >
                       {item.descripcion}
                     </Typography>
-                  </CardContent>
-                </Card>
+                  </Box>
+                </GlassCard>
               </Grid>
             ))}
           </Grid>

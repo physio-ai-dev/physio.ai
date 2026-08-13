@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Dialog, DialogTitle, DialogContent, TextField, Button, Alert, Box } from "@mui/material";
-import { loginUser } from "../api/authService";
+import { Dialog, DialogTitle, DialogContent, TextField, Alert, Box } from "@mui/material";
+import { loginUser } from "../../api/authService";
+import ActionButton from "../Common/Buttons/ActionButton";
 
 export default function LoginModal({ open, onClose, onSuccess }) {
   const [email, setEmail] = useState("");
@@ -41,9 +42,9 @@ export default function LoginModal({ open, onClose, onSuccess }) {
             required
             fullWidth
           />
-          <Button type="submit" variant="contained" color="primary" size="large" sx={{ mt: 1 }}>
+          <ActionButton type="submit" size="large" sx={{ mt: 1 }}>
             Ingresar
-          </Button>
+          </ActionButton>
         </Box>
       </DialogContent>
     </Dialog>

@@ -1,43 +1,39 @@
 import { EntitySchema } from "typeorm";
 
-const InjurySchema = new EntitySchema({
-  name: "Injury",
-  tableName: "injuries",
+const SearchSchema = new EntitySchema({
+  name: "Search",
+  tableName: "searches",
   columns: {
     id: {
       type: "int",
       primary: true,
       generated: true,
     },
+    user_id: {
+      type: "int",
+      nullable: true,
+    },
     player_id: {
       type: "int",
     },
-    injury_type: {
-      type: "varchar",
-      length: 255,
-    },
-    estimated_days_club: {
-      type: "int",
-    },
-    clinical_time_ai: {
-      type: "int",
-      nullable: true,
-    },
-    comparative_analysis: {
-      type: "text",
-      nullable: true,
-    },
-    status: {
+    search_type: {
       type: "varchar",
       length: 50,
-      default: "En Recuperación",
+      default: "clinico",
     },
-    created_at: {
+    search_date: {
       type: "timestamp",
       default: () => "CURRENT_TIMESTAMP",
     },
   },
   relations: {
+    user: {
+      type: "many-to-one",
+      target: "User",
+      joinColumn: { name: "user_id" },
+      onDelete: "CASCADE",
+      nullable: true,
+    },
     player: {
       type: "many-to-one",
       target: "Player",
@@ -47,4 +43,4 @@ const InjurySchema = new EntitySchema({
   },
 });
 
-export default InjurySchema;
+export default SearchSchema;

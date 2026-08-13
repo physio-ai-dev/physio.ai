@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Table,
   TableBody,
@@ -11,8 +9,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  CircularProgress,
-  Alert,
   Divider,
   FormControl,
   Select,
@@ -31,7 +27,10 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { api } from "../api/backend";
+import { api } from "../../api/backend";
+import LoadingSpinner from "../Common/Layout/LoadingSpinner";
+import ErrorAlert from "../Common/Feedback/ErrorAlert";
+import GlassCard from "../Common/Layout/GlassCard";
 
 export default function DashboardPanel({ jugadorId }) {
   const [loadingStats, setLoadingStats] = useState(true);
@@ -39,18 +38,17 @@ export default function DashboardPanel({ jugadorId }) {
   const [errorStats, setErrorStats] = useState(null);
   const [errorIA, setErrorIA] = useState(null);
   const [stats, setStats] = useState(null);
-  const [analisis, setAnalisis] = useState("");
+  const [analysis, setAnalysis] = useState("");
   const [range, setRange] = useState(10);
 
   useEffect(() => {
     if (!jugadorId) return;
 
-    // 1. Petición independiente de Estadísticas
-    const cargarEstadisticas = async () => {
+    const loadStats = async () => {
       setLoadingStats(true);
       setErrorStats(null);
       try {
-        const dataStats = await api.obtenerEstadisticas(jugadorId);
+        const dataStats = await api.getPlayerStats(jugadorId);
         setStats(dataStats);
       } catch (err) {
         setErrorStats(err.message || "Error al cargar las estadísticas.");
@@ -59,13 +57,12 @@ export default function DashboardPanel({ jugadorId }) {
       }
     };
 
-    // 2. Petición independiente de Análisis IA
-    const cargarAnalisisIA = async () => {
+    const loadIAAnalysis = async () => {
       setLoadingIA(true);
       setErrorIA(null);
       try {
-        const dataIA = await api.obtenerAnalisisIA(jugadorId);
-        setAnalisis(dataIA.reporte || dataIA.resultado || "");
+        const dataIA = await api.getPlayerPerformanceAnalysis(jugadorId);
+        setAnalysis(dataIA.reporte || dataIA.resultado || "");
       } catch (err) {
         setErrorIA(err.message || "Error al generar el análisis de IA.");
       } finally {
@@ -73,8 +70,8 @@ export default function DashboardPanel({ jugadorId }) {
       }
     };
 
-    cargarEstadisticas();
-    cargarAnalisisIA();
+    loadStats();
+    loadIAAnalysis();
   }, [jugadorId]);
 
   const matches = stats?.recentMatches || [];
@@ -117,17 +114,15 @@ export default function DashboardPanel({ jugadorId }) {
       <Grid container spacing={3}>
         {/* Panel Resumen de Estadísticas */}
         <Grid item xs={12} md={4}>
-          <Card variant="outlined" sx={{ height: "100%", borderRadius: 4, bgcolor: "rgba(255, 255, 255, 0.01)" }}>
-            <CardContent sx={{ p: 3 }}>
+          <GlassCard sx={{ height: "100%" }}>
+            <Box sx={{ p: 3 }}>
               <Typography variant="subtitle1" sx={{ color: "primary.light", mb: 2, fontWeight: 800 }}>
                 Resumen de Rendimiento
               </Typography>
               {loadingStats ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress size={28} color="primary" />
-                </Box>
+                <LoadingSpinner py={4} />
               ) : errorStats ? (
-                <Alert severity="error" sx={{ borderRadius: 2 }}>{errorStats}</Alert>
+                <ErrorAlert message={errorStats} />
               ) : (
                 <TableContainer component={Paper} elevation={0} sx={{ bgcolor: "transparent" }}>
                   <Table size="small">
@@ -166,21 +161,19 @@ export default function DashboardPanel({ jugadorId }) {
                   </Table>
                 </TableContainer>
               )}
-            </CardContent>
-          </Card>
+            </Box>
+          </GlassCard>
         </Grid>
 
         {/* Gráfico de Tendencia */}
         <Grid item xs={12} md={8}>
-          <Card variant="outlined" sx={{ height: "100%", borderRadius: 4, bgcolor: "rgba(255, 255, 255, 0.01)" }}>
-            <CardContent sx={{ p: 3 }}>
+          <GlassCard sx={{ height: "100%" }}>
+            <Box sx={{ p: 3 }}>
               <Typography variant="subtitle1" sx={{ color: "primary.light", mb: 2, fontWeight: 800 }}>
                 Tendencia de Calificación
               </Typography>
               {loadingStats ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress size={28} color="primary" />
-                </Box>
+                <LoadingSpinner py={4} />
               ) : (
                 <Box sx={{ width: "100%", height: 200 }}>
                   <ResponsiveContainer width="100%" height="100%">
@@ -197,21 +190,19 @@ export default function DashboardPanel({ jugadorId }) {
                   </ResponsiveContainer>
                 </Box>
               )}
-            </CardContent>
-          </Card>
+            </Box>
+          </GlassCard>
         </Grid>
 
         {/* Gráfico de Goles y Asistencias */}
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ borderRadius: 4, bgcolor: "rgba(255, 255, 255, 0.01)" }}>
-            <CardContent sx={{ p: 3 }}>
+          <GlassCard>
+            <Box sx={{ p: 3 }}>
               <Typography variant="subtitle1" sx={{ color: "primary.light", mb: 2, fontWeight: 800 }}>
                 Goles y Asistencias por Partido
               </Typography>
               {loadingStats ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress size={28} color="primary" />
-                </Box>
+                <LoadingSpinner py={4} />
               ) : (
                 <Box sx={{ width: "100%", height: 200 }}>
                   <ResponsiveContainer width="100%" height="100%">
@@ -229,31 +220,29 @@ export default function DashboardPanel({ jugadorId }) {
                   </ResponsiveContainer>
                 </Box>
               )}
-            </CardContent>
-          </Card>
+            </Box>
+          </GlassCard>
         </Grid>
 
         {/* Panel del Análisis Predictivo de la IA */}
         <Grid item xs={12} md={6}>
-          <Card variant="outlined" sx={{ height: "100%", border: "1px solid rgba(16, 185, 129, 0.25)", borderRadius: 4, bgcolor: "rgba(16, 185, 129, 0.01)" }}>
-            <CardContent sx={{ p: 3 }}>
+          <GlassCard sx={{ height: "100%", border: "1px solid rgba(16, 185, 129, 0.25)", bgcolor: "rgba(16, 185, 129, 0.01)" }}>
+            <Box sx={{ p: 3 }}>
               <Typography variant="subtitle1" sx={{ color: "primary.light", mb: 1, fontWeight: 800 }}>
                 Análisis Predictivo IA
               </Typography>
               <Divider sx={{ mb: 2, borderColor: "rgba(255, 255, 255, 0.05)" }} />
               {loadingIA ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress size={28} color="primary" />
-                </Box>
+                <LoadingSpinner py={4} />
               ) : errorIA ? (
-                <Alert severity="error" sx={{ borderRadius: 2 }}>{errorIA}</Alert>
+                <ErrorAlert message={errorIA} />
               ) : (
                 <Typography variant="body2" sx={{ lineHeight: 1.8, whiteSpace: "pre-line", color: "text.secondary", fontWeight: 500 }}>
-                  {analisis || "No hay información disponible de la IA para este futbolista."}
+                  {analysis || "No hay información disponible de la IA para este futbolista."}
                 </Typography>
               )}
-            </CardContent>
-          </Card>
+            </Box>
+          </GlassCard>
         </Grid>
       </Grid>
     </Box>

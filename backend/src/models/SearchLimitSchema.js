@@ -2,18 +2,18 @@ import { EntitySchema } from "typeorm";
 
 const SearchLimitSchema = new EntitySchema({
   name: "SearchLimit",
-  tableName: "limite_busquedas_anonimas",
+  tableName: "anonymous_search_limits",
   columns: {
-    identificador: {
+    identifier: {
       type: "varchar",
       length: 255,
       primary: true,
     },
-    cantidad: {
+    quantity: {
       type: "int",
       default: 0,
     },
-    ultima_busqueda: {
+    last_search: {
       type: "date",
     },
   },

@@ -7,14 +7,12 @@ export const register = async (req, res) => {
   try {
     const { username, email, password, passwordConfirm, dob } = req.body;
 
-    // 1. Validar que todos los campos requeridos estén presentes
     if (!username || !email || !password || !passwordConfirm || !dob) {
       return res.status(400).json({
         error: "Todos los campos son obligatorios: username, email, password, passwordConfirm, dob.",
       });
     }
 
-    // 2. Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -22,14 +20,12 @@ export const register = async (req, res) => {
       });
     }
 
-    // 3. Validar longitud de contraseña (mínimo 6 caracteres)
     if (password.length < 6) {
       return res.status(400).json({
         error: "La contraseña debe tener al menos 6 caracteres.",
       });
     }
 
-    // 4. Validar coincidencia de contraseña y confirmación
     if (password !== passwordConfirm) {
       return res.status(400).json({
         error: "La contraseña y la confirmación no coinciden.",
@@ -38,7 +34,6 @@ export const register = async (req, res) => {
 
     const userRepository = AppDataSource.getRepository(UserSchema);
 
-    // 5. Verificar si el correo electrónico ya está registrado
     const existingUserByEmail = await userRepository.findOne({
       where: { email },
     });
@@ -49,7 +44,6 @@ export const register = async (req, res) => {
       });
     }
 
-    // 6. Verificar si el nombre de usuario ya está registrado
     const existingUserByUsername = await userRepository.findOne({
       where: { username },
     });
@@ -60,11 +54,9 @@ export const register = async (req, res) => {
       });
     }
 
-    // 7. Encriptar la contraseña (hashing con bcryptjs)
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 8. Crear y guardar el nuevo usuario
     const newUser = userRepository.create({
       username,
       email,
@@ -115,7 +107,7 @@ export const login = async (req, res) => {
 
     const JWT_SECRET = process.env.JWT_SECRET || "secreto_super_seguro";
     const token = jwt.sign(
-      { id: user.id, email: user.email, rol: user.rol, subscription_tier: user.subscription_tier },
+      { id: user.id, email: user.email, role: user.role, subscription_tier: user.subscription_tier },
       JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -127,7 +119,7 @@ export const login = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
-        rol: user.rol,
+        role: user.role,
         subscription_tier: user.subscription_tier
       }
     });

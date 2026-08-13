@@ -10,7 +10,7 @@ const getHeaders = (extraHeaders = {}) => {
 };
 
 export const api = {
-  buscarJugador: async (nombre) => {
+  searchPlayer: async (name) => {
     let userEmail = "";
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -20,7 +20,7 @@ export const api = {
       } catch (e) {}
     }
     const response = await fetch(
-      `${BASE_URL}/players/search?name=${encodeURIComponent(nombre)}`,
+      `${BASE_URL}/players/search?name=${encodeURIComponent(name)}`,
       {
         headers: getHeaders({
           "x-user-email": userEmail,
@@ -36,14 +36,14 @@ export const api = {
     return response.json();
   },
 
-  analizarLesion: async (jugadorId, tipoLesion, diasClub) => {
+  analyzeInjury: async (playerId, injuryType, estimatedDaysClub) => {
     const response = await fetch(`${BASE_URL}/ai/analyze`, {
       method: "POST",
       headers: getHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({
-        jugador_id: jugadorId,
-        tipo_lesion: tipoLesion,
-        dias_estimados_club: parseInt(diasClub, 10),
+        playerId,
+        injuryType,
+        estimatedDaysClub: parseInt(estimatedDaysClub, 10),
       }),
     });
 
@@ -51,11 +51,10 @@ export const api = {
       throw new Error("Error al procesar el análisis con Gemini.");
     }
 
-    const data = await response.json();
-    return data.lesion;
+    return response.json();
   },
 
-  obtenerLigas: async () => {
+  getLeagues: async () => {
     const response = await fetch(`${BASE_URL}/players/leagues`, {
       headers: getHeaders(),
     });
@@ -66,11 +65,11 @@ export const api = {
     return response.json();
   },
 
-  crearJugadorLocal: async (datos) => {
+  createLocalPlayer: async (data) => {
     const response = await fetch(`${BASE_URL}/players`, {
       method: "POST",
       headers: getHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(datos),
+      body: JSON.stringify(data),
     });
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
@@ -79,7 +78,7 @@ export const api = {
     return response.json();
   },
 
-  obtenerPosiciones: async () => {
+  getPositions: async () => {
     const response = await fetch(`${BASE_URL}/players/positions`, {
       headers: getHeaders(),
     });
@@ -90,9 +89,9 @@ export const api = {
     return response.json();
   },
 
-  obtenerClubes: async (ligaNombre) => {
-    const url = ligaNombre
-      ? `${BASE_URL}/players/clubs?leagueName=${encodeURIComponent(ligaNombre)}`
+  getClubs: async (leagueName) => {
+    const url = leagueName
+      ? `${BASE_URL}/players/clubs?leagueName=${encodeURIComponent(leagueName)}`
       : `${BASE_URL}/players/clubs`;
     const response = await fetch(url, {
       headers: getHeaders(),
@@ -104,11 +103,11 @@ export const api = {
     return response.json();
   },
 
-  registrarUsuario: async (datos) => {
+  registerUser: async (data) => {
     const response = await fetch(`${BASE_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datos),
+      body: JSON.stringify(data),
     });
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
@@ -117,7 +116,7 @@ export const api = {
     return response.json();
   },
 
-  registrarSeleccion: async (id, tipo = "clinico") => {
+  recordSelection: async (id, type = "clinico") => {
     let userEmail = "";
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -126,7 +125,7 @@ export const api = {
         userEmail = userObj.email || "";
       } catch (e) {}
     }
-    const response = await fetch(`${BASE_URL}/players/${id}/select?tipo=${tipo}`, {
+    const response = await fetch(`${BASE_URL}/players/${id}/select?tipo=${type}`, {
       method: "POST",
       headers: getHeaders({
         "x-user-email": userEmail,
@@ -139,7 +138,7 @@ export const api = {
     return response.json();
   },
 
-  obtenerReporteClinico: async (id) => {
+  getClinicalReport: async (id) => {
     const response = await fetch(`${BASE_URL}/players/${id}/audit-report`, {
       headers: getHeaders(),
     });
@@ -150,7 +149,7 @@ export const api = {
     return response.json();
   },
 
-  crearSesionStripe: async () => {
+  createStripeSession: async () => {
     const response = await fetch(`${BASE_URL}/stripe/create-checkout-session`, {
       method: "POST",
       headers: getHeaders(),
@@ -162,8 +161,8 @@ export const api = {
     return response.json();
   },
 
-  obtenerEstadisticas: async (jugadorId) => {
-    const response = await fetch(`${BASE_URL}/stats?id=${jugadorId}`, {
+  getPlayerStats: async (playerId) => {
+    const response = await fetch(`${BASE_URL}/stats?id=${playerId}`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -174,11 +173,11 @@ export const api = {
     return response.json();
   },
 
-  obtenerAnalisisIA: async (jugadorId) => {
+  getPlayerPerformanceAnalysis: async (playerId) => {
     const response = await fetch(`${BASE_URL}/analysis`, {
       method: "POST",
       headers: getHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify({ id: jugadorId }),
+      body: JSON.stringify({ id: playerId }),
     });
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
@@ -187,7 +186,7 @@ export const api = {
     return response.json();
   },
 
-  obtenerTopBuscados: async () => {
+  getTopSearched: async () => {
     const response = await fetch(`${BASE_URL}/players/reports/top-searched`, {
       headers: getHeaders(),
     });
@@ -198,7 +197,7 @@ export const api = {
     return response.json();
   },
 
-  obtenerDetallesJugador: async (id) => {
+  getPlayerDetails: async (id) => {
     const response = await fetch(`${BASE_URL}/players/${id}`, {
       headers: getHeaders(),
     });
@@ -209,7 +208,7 @@ export const api = {
     return response.json();
   },
 
-  obtenerHistorialBusquedas: async () => {
+  getSearchHistory: async () => {
     const response = await fetch(`${BASE_URL}/players/history`, {
       headers: getHeaders(),
     });

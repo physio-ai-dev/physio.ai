@@ -1,6 +1,4 @@
 import {
-  Card,
-  CardContent,
   Box,
   Typography,
   Avatar,
@@ -15,20 +13,21 @@ import {
   Psychology as BrainIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
+import GlassCard from "../Common/Layout/GlassCard";
 
 export default function ResultPanel({
-  resultadoFinal,
-  jugador,
-  edadCalculada,
-  listaCoincidencias,
+  clinicalReport,
+  player,
+  calculatedAge,
+  matchedPlayers,
   formatBirthdate,
   renderLegibleReport,
   onBackToMatches,
   onReset,
 }) {
   return (
-    <Card variant="outlined">
-      <CardContent
+    <GlassCard>
+      <Box
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -39,7 +38,7 @@ export default function ResultPanel({
         {/* Cabecera del Perfil Encontrado con Edad y Fecha de Nacimiento limpia */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
           <Avatar
-            src={jugador?.foto}
+            src={player?.photoUrl || player?.foto_url || player?.foto}
             sx={{
               width: 72,
               height: 72,
@@ -52,7 +51,7 @@ export default function ResultPanel({
               variant="h5"
               sx={{ fontWeight: 900, letterSpacing: "-0.5px" }}
             >
-              {jugador?.nombre}
+              {player?.name || player?.nombre}
             </Typography>
             <Typography
               variant="body2"
@@ -63,13 +62,13 @@ export default function ResultPanel({
                 letterSpacing: 0.5,
               }}
             >
-              {jugador?.equipo}{" "}
-              {edadCalculada ? `• ${edadCalculada} años` : ""}{" "}
-              {jugador?.fecha_nacimiento
-                ? `• ${formatBirthdate(jugador.fecha_nacimiento)}`
+              {player?.club || player?.equipo}{" "}
+              {calculatedAge ? `• ${calculatedAge} años` : ""}{" "}
+              {(player?.birthdate || player?.fecha_nacimiento)
+                ? `• ${formatBirthdate(player.birthdate || player.fecha_nacimiento)}`
                 : ""}{" "}
-              {jugador?.estatura ? `• ${jugador.estatura}` : ""}{" "}
-              {jugador?.valor_mercado ? `• ${jugador.valor_mercado}` : ""}
+              {(player?.height || player?.estatura) ? `• ${player.height || player.estatura}` : ""}{" "}
+              {(player?.marketValue || player?.valor_mercado) ? `• ${player.marketValue || player.valor_mercado}` : ""}
             </Typography>
           </Box>
         </Box>
@@ -112,7 +111,7 @@ export default function ResultPanel({
                 variant="body1"
                 sx={{ fontWeight: 800, textTransform: "capitalize" }}
               >
-                {resultadoFinal.tipo_lesion}
+                {clinicalReport?.injuryType || clinicalReport?.tipo_lesion}
               </Typography>
             </Box>
           </Grid>
@@ -149,9 +148,9 @@ export default function ResultPanel({
                 variant="h6"
                 sx={{ fontWeight: 800, color: "#38bdf8" }}
               >
-                {resultadoFinal.fecha_registro
+                {(clinicalReport?.createdAt || clinicalReport?.fecha_registro)
                   ? new Date(
-                      resultadoFinal.fecha_registro,
+                      clinicalReport.createdAt || clinicalReport.fecha_registro,
                     ).toLocaleDateString("es-ES")
                   : "N/D"}
               </Typography>
@@ -192,7 +191,7 @@ export default function ResultPanel({
                 variant="h6"
                 sx={{ fontWeight: 800, color: "#fbbf24" }}
               >
-                {resultadoFinal.dias_estimados_club} días
+                {clinicalReport?.estimatedDaysClub || clinicalReport?.dias_estimados_club} días
               </Typography>
             </Box>
           </Grid>
@@ -229,7 +228,7 @@ export default function ResultPanel({
                 variant="h6"
                 sx={{ fontWeight: 800, color: "#34d399" }}
               >
-                {resultadoFinal.tiempo_clinico_ia || "N/D"} días
+                {(clinicalReport?.clinicalTimeAi || clinicalReport?.tiempo_clinico_ia) || "N/D"} días
               </Typography>
             </Box>
           </Grid>
@@ -270,13 +269,13 @@ export default function ResultPanel({
 
           {/* Renderizado de Dictamen Estructurado y Altamente Legible */}
           <Box>
-            {renderLegibleReport(resultadoFinal.analisis_comparativo)}
+            {renderLegibleReport(clinicalReport?.comparativeAnalysis || clinicalReport?.analisis_comparativo)}
           </Box>
         </Box>
 
         {/* Botón de volver a buscar / volver a la lista */}
         <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
-          {listaCoincidencias.length > 0 && (
+          {matchedPlayers?.length > 0 && (
             <Button
               startIcon={<ArrowBackIcon />}
               onClick={onBackToMatches}
@@ -296,7 +295,7 @@ export default function ResultPanel({
             Buscar otro futbolista
           </Button>
         </Box>
-      </CardContent>
-    </Card>
+      </Box>
+    </GlassCard>
   );
 }

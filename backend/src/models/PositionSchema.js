@@ -1,15 +1,15 @@
 import { EntitySchema } from "typeorm";
 
 const PositionSchema = new EntitySchema({
-  name: "Posicion",
-  tableName: "posiciones",
+  name: "Position",
+  tableName: "positions",
   columns: {
     id: {
       type: "int",
       primary: true,
       generated: true,
     },
-    nombre: {
+    name: {
       type: "varchar",
       length: 50,
       unique: true,
