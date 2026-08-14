@@ -51,11 +51,11 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
 
   const handleRowClick = (item) => {
     const player = {
-      id: item.playerId,
-      nombre: item.playerName,
-      equipo: item.clubName,
+      id: item.jugador_id,
+      nombre: item.jugador_nombre,
+      equipo: item.equipo,
     };
-    if (item.searchType === "clinico") {
+    if (item.tipo_buscador === "clinico") {
       if (onSelectPlayerClinical) onSelectPlayerClinical(player);
     } else {
       if (onSelectPlayerPerformance) onSelectPlayerPerformance(player);
@@ -102,31 +102,31 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell sx={{ fontWeight: 700, color: "text.primary" }}>
-                      {item.playerName}
+                      {item.jugador_nombre}
                     </TableCell>
                     <TableCell sx={{ color: "text.secondary", fontWeight: 500 }}>
-                      {item.clubName || "Sin equipo"}
+                      {item.equipo || "Sin equipo"}
                     </TableCell>
                     <TableCell>
                       <Chip
-                        icon={item.searchType === "clinico" ? <MedicalServicesIcon sx={{ fontSize: "0.9rem !important" }} /> : <DashboardIcon sx={{ fontSize: "0.9rem !important" }} />}
-                        label={item.searchType === "clinico" ? "Clínico" : "Rendimiento"}
+                        icon={item.tipo_buscador === "clinico" ? <MedicalServicesIcon sx={{ fontSize: "0.9rem !important" }} /> : <DashboardIcon sx={{ fontSize: "0.9rem !important" }} />}
+                        label={item.tipo_buscador === "clinico" ? "Clínico" : "Rendimiento"}
                         size="small"
                         sx={{
                           height: 22,
                           fontSize: "0.75rem",
                           fontWeight: 700,
-                          bgcolor: item.searchType === "clinico" ? "rgba(16, 185, 129, 0.1)" : "rgba(96, 165, 250, 0.1)",
-                          color: item.searchType === "clinico" ? "#10b981" : "#60a5fa",
-                          border: item.searchType === "clinico" ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(96, 165, 250, 0.2)"
+                          bgcolor: item.tipo_buscador === "clinico" ? "rgba(16, 185, 129, 0.1)" : "rgba(96, 165, 250, 0.1)",
+                          color: item.tipo_buscador === "clinico" ? "#10b981" : "#60a5fa",
+                          border: item.tipo_buscador === "clinico" ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(96, 165, 250, 0.2)"
                         }}
                       />
                     </TableCell>
                     <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem", fontWeight: 500 }}>
-                      {new Date(item.searchDate).toLocaleString()}
+                      {new Date(item.fecha_busqueda).toLocaleString()}
                     </TableCell>
                     <TableCell align="center">
-                      <Tooltip title={`Ver en buscador ${item.searchType === "clinico" ? "clínico" : "de rendimiento"}`}>
+                      <Tooltip title={`Ver en buscador ${item.tipo_buscador === "clinico" ? "clínico" : "de rendimiento"}`}>
                         <IconButton
                           size="small"
                           color="primary"

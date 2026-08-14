@@ -7,13 +7,10 @@ import RegisterPage from "./Auth/RegisterPage";
 import PricingPage from "./Pricing/PricingPage";
 import DashboardPage from "./Dashboard/DashboardPage";
 import DashboardPanel from "./Dashboard/DashboardPanel";
-import TopSearchedPage from "./Reports/TopSearchedPage";
 import SearchHistoryPage from "./History/SearchHistoryPage";
+import LoginPage from "./Auth/LoginPage";
+import TopSearchedPage from "./Reports/TopSearchedPage";
 
-/**
- * AppRouter — Renderiza la página activa según el estado de navegación.
- * Desacopla el enrutamiento del estado global de App.jsx.
- */
 export default function AppRouter({
   page,
   isLoggedIn,
@@ -40,6 +37,7 @@ export default function AppRouter({
   onSelectPlayerPerformance,
   onResetSearch,
   onBackToMatches,
+  onLoginSuccess,
 }) {
   const containerMaxWidth =
     page === "dashboard" || page === "top-searched" || page === "history"
@@ -49,12 +47,23 @@ export default function AppRouter({
   return (
     <Container
       maxWidth={containerMaxWidth}
-      sx={{ py: 6, flexGrow: 1, display: "flex", flexDirection: "column", gap: 4 }}
+      sx={{
+        py: 6,
+        flexGrow: 1,
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+      }}
     >
       {page === "create" ? (
         <CreatePlayerPage onGoBack={onGoBack} />
       ) : page === "register" ? (
-        <RegisterPage onGoBack={onGoBack} onRegisterSuccess={onRegisterSuccess} />
+        <RegisterPage
+          onGoBack={onGoBack}
+          onRegisterSuccess={onRegisterSuccess}
+        />
+      ) : page === "login" ? (
+        <LoginPage onGoBack={onGoBack} onLoginSuccess={onLoginSuccess} />
       ) : page === "pricing" ? (
         <PricingPage onGoBack={onGoBackFromPricing} currentUser={currentUser} />
       ) : page === "dashboard" ? (

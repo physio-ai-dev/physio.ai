@@ -271,6 +271,7 @@ GROUP BY pl.id, pl.name, c.name, pos.name;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'physiodb_user') THEN
+        -- IMPORTANTE: cambiar 'physiodb_pass' por el valor de PHYSIODB_PASSWORD en el .env antes de ejecutar en producción
         CREATE ROLE physiodb_user WITH LOGIN PASSWORD 'physiodb_pass';
     END IF;
 END

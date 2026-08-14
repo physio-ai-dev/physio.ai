@@ -1,71 +1,19 @@
-import React from "react";
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Chip,
-  AppBar,
-  Toolbar,
-  Stack,
-  ThemeProvider,
-  createTheme,
-  CssBaseline,
-} from "@mui/material";
-import MedicalServicesIcon from "@mui/icons-material/MedicalServices";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import PsychologyIcon from "@mui/icons-material/Psychology";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import CardMembershipIcon from "@mui/icons-material/CardMembership";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import GlassCard from "../Common/Layout/GlassCard";
+import { Box, AppBar, Toolbar, Typography } from "@mui/material";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import { MedicalServicesIcon, ArrowForwardIcon } from "../Common/Icons";
+import { darkTheme } from "../../Themes/theme.jsx";
 import ActionButton from "../Common/Buttons/ActionButton";
-import PageTitle from "../Common/Typography/PageTitle";
+import HeroSection from "./Sections/HeroSection";
+import StatsSection from "./Sections/StatsSection";
+import FeaturesSection from "./Sections/FeaturesSection";
+import SocialProofSection from "./Sections/SocialProofSection";
+import CtaBannerSection from "./Sections/CtaBannerSection";
 
-const darkTheme = createTheme({
-  palette: {
-    mode: "dark",
-    primary: {
-      main: "#10b981",
-      light: "#34d399",
-      dark: "#059669",
-    },
-    background: {
-      default: "#030712",
-      paper: "#0b1528",
-    },
-    text: {
-      primary: "#f8fafc",
-      secondary: "#94a3b8",
-    },
-  },
-  typography: {
-    fontFamily: '"Outfit", "Inter", "Roboto", sans-serif',
-  },
-});
-
+/**
+ * LandingPage — Orquestador de secciones de la página de inicio.
+ * Toda la lógica visual está delegada a sus secciones atómicas.
+ */
 export default function LandingPage({ onStart, onRegister, onGoSearch }) {
-  const caracteristicasPremium = [
-    {
-      icono: <PsychologyIcon sx={{ fontSize: 36, color: "#10b981" }} />,
-      titulo: "Auditoría Médica por IA",
-      descripcion:
-        "Análisis clínico avanzado potenciado por Gemini que contrasta los tiempos de recuperación oficiales con la literatura médica especializada.",
-    },
-    {
-      icono: <AnalyticsIcon sx={{ fontSize: 36, color: "#38bdf8" }} />,
-      titulo: "Analíticas Avanzadas",
-      descripcion:
-        "Métricas comparativas en tiempo real sobre el historial de lesiones, tiempos de baja y estimaciones de recuperabilidad.",
-    },
-    {
-      icono: <CardMembershipIcon sx={{ fontSize: 36, color: "#f59e0b" }} />,
-      titulo: "Control de Suscripciones",
-      descripcion:
-        "Gestión flexible de accesos institucionales para equipos médicos, analistas deportivos y consultores de rendimiento.",
-    },
-  ];
-
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -78,22 +26,22 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
           overflowX: "hidden",
         }}
       >
-        {/* Navbar Principal */}
+        {/* Navbar */}
         <AppBar
-          position="static"
+          position="fixed"
           color="transparent"
           elevation={0}
           sx={{
             borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-            bgcolor: "rgba(11, 21, 40, 0.5)",
-            backdropFilter: "blur(16px)",
+            bgcolor: "rgba(3, 7, 18, 0.75)",
+            backdropFilter: "blur(20px)",
           }}
         >
           <Toolbar sx={{ justifyContent: "space-between" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <MedicalServicesIcon
                 color="primary"
-                sx={{ fontSize: 28, filter: "drop-shadow(0 0 8px #10b98160)" }}
+                sx={{ fontSize: 26, filter: "drop-shadow(0 0 8px #10b98160)" }}
               />
               <Typography
                 variant="h6"
@@ -109,23 +57,22 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
               </Typography>
             </Box>
 
-            {/* Acceso rápido desde Navbar */}
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
               <ActionButton
                 variant="outlined"
                 onClick={onRegister}
                 sx={{
-                  borderRadius: 16,
-                  px: 3,
-                  borderColor: "rgba(255, 255, 255, 0.15)",
+                  borderRadius: 3,
+                  px: 2.5,
+                  borderColor: "rgba(255, 255, 255, 0.12)",
                   color: "text.primary",
                   boxShadow: "none",
                   bgcolor: "transparent",
                   "&:hover": {
-                    borderColor: "rgba(255, 255, 255, 0.25)",
-                    bgcolor: "rgba(255, 255, 255, 0.02)",
+                    borderColor: "rgba(255,255,255,0.22)",
+                    bgcolor: "rgba(255,255,255,0.02)",
                     boxShadow: "none",
-                  }
+                  },
                 }}
               >
                 Registrarse
@@ -133,6 +80,7 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
               <ActionButton
                 onClick={onStart}
                 endIcon={<ArrowForwardIcon />}
+                sx={{ borderRadius: 3, px: 2.5 }}
               >
                 Iniciar Sesión
               </ActionButton>
@@ -140,138 +88,24 @@ export default function LandingPage({ onStart, onRegister, onGoSearch }) {
           </Toolbar>
         </AppBar>
 
-        {/* Sección Hero */}
-        <Container maxWidth="lg" sx={{ pt: { xs: 8, md: 12 }, pb: 8 }}>
-          <Stack spacing={4} sx={{ alignItems: "center", textAlign: "center" }}>
-            
-            {/* Elemento gráfico de la propuesta de valor */}
-            <Chip
-              icon={<AutoAwesomeIcon sx={{ fontSize: "1rem !important" }} />}
-              label="Inteligencia Artificial Aplicada a la Medicina Deportiva"
-              variant="outlined"
-              color="primary"
-              sx={{
-                px: 1,
-                py: 2.5,
-                borderRadius: 5,
-                bgcolor: "rgba(16, 185, 129, 0.05)",
-                borderColor: "rgba(16, 185, 129, 0.2)",
-                fontWeight: 600,
-              }}
-            />
-
-            {/* Título de alto impacto visual */}
-            <Typography
-              variant="h2"
-              component="h1"
-              sx={{
-                fontWeight: 900,
-                fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4.2rem" },
-                lineHeight: 1.15,
-                maxWidth: "900px",
-                letterSpacing: "-1.5px",
-              }}
-            >
-              Auditoría Clínica Inteligente para el{" "}
-              <Box
-                component="span"
-                sx={{
-                  background: "linear-gradient(90deg, #10b981, #38bdf8)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Fútbol Profesional
-              </Box>
-            </Typography>
-
-            {/* Descripción clara del valor ofrecido */}
-            <Typography
-              variant="h6"
-              color="text.secondary"
-              sx={{
-                maxWidth: "720px",
-                fontWeight: 400,
-                lineHeight: 1.6,
-                fontSize: { xs: "1rem", sm: "1.2rem" },
-              }}
-            >
-              Plataforma institucional diseñada para evaluar diagnósticos y contrastar
-              los tiempos de recuperación oficiales emitidos por los clubes frente
-              al criterio clínico sustentado por IA.
-            </Typography>
-
-            {/* Botón principal de CTA - Acceso Directo al Buscador */}
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ pt: 2 }}>
-              <ActionButton
-                size="large"
-                onClick={onGoSearch || onStart}
-                endIcon={<ArrowForwardIcon />}
-                sx={{
-                  px: 4,
-                  py: 1.8,
-                  fontSize: "1.1rem",
-                  boxShadow: "0 8px 25px 0 rgba(16, 185, 129, 0.3)",
-                  "&:hover": {
-                    transform: "translateY(-3px)",
-                    boxShadow: "0 12px 30px 0 rgba(16, 185, 129, 0.5)",
-                    bgcolor: "primary.light",
-                  },
-                }}
-              >
-                Ingresar al Buscador Clínico
-              </ActionButton>
-            </Stack>
-          </Stack>
-        </Container>
-
-        {/* Bloques informativos inferiores */}
-        <Container maxWidth="lg" sx={{ py: 8 }}>
-          <Grid container spacing={4}>
-            {caracteristicasPremium.map((item, index) => (
-              <Grid item xs={12} md={4} key={index}>
-                <GlassCard
-                  sx={{
-                    height: "100%",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-6px)",
-                      borderColor: "rgba(16, 185, 129, 0.4)",
-                      boxShadow: "0 12px 30px rgba(0, 0, 0, 0.4)",
-                    },
-                  }}
-                >
-                  <Box sx={{ p: 4 }}>
-                    <Box sx={{ mb: 2.5 }}>{item.icono}</Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.5 }}>
-                      {item.titulo}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ lineHeight: 1.7, fontSize: "0.95rem" }}
-                    >
-                      {item.descripcion}
-                    </Typography>
-                  </Box>
-                </GlassCard>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
+        {/* Secciones */}
+        <HeroSection onStart={onStart} onRegister={onRegister} onGoSearch={onGoSearch} />
+        <StatsSection />
+        <FeaturesSection />
+        <SocialProofSection />
+        <CtaBannerSection onRegister={onRegister} onGoSearch={onGoSearch} />
 
         {/* Footer */}
         <Box
           component="footer"
           sx={{
-            mt: "auto",
             py: 4,
             borderTop: "1px solid rgba(255, 255, 255, 0.05)",
             textAlign: "center",
           }}
         >
-          <Typography variant="caption" color="text.secondary">
-            © {new Date().getFullYear()} Physio.AI — Sistema de Auditoría y Criterio Médico Deportivo
+          <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.5 }}>
+            © {new Date().getFullYear()} Physio.AI — Sistema de Auditoría Clínica Inteligente para el Fútbol Profesional
           </Typography>
         </Box>
       </Box>
