@@ -75,7 +75,7 @@ DB_PASSWORD=tu_contraseña_postgres
 DB_NAME=physio_ai
 JWT_SECRET=secreto_seguro_jwt
 GEMINI_API_KEY=tu_token_de_gemini
-CLIENT_URL=http://localhost:5174
+CLIENT_URL=http://localhost:5173
 ```
 
 ### 2. Configuración e inicialización del Backend
@@ -100,7 +100,7 @@ npm install
 npm run dev
 ```
 
-_El frontend estará disponible en http://localhost:5174 (o en el puerto secundario disponible en consola)._
+_El frontend estará disponible en http://localhost:5173 (o en el puerto secundario disponible en consola)._
 
 ---
 
