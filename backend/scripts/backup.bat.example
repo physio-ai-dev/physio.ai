@@ -1,0 +1,22 @@
+@echo off
+:: Variables
+SET PG_PATH="C:\Program Files\PostgreSQL\16\bin"
+SET DB_NAME=physiodb
+SET DB_USER=physiodb_user
+SET PGPASSWORD=env_password
+SET BACKUP_DIR=C:\Users\rafae\Desktop\physio.ai\backups
+
+:: Create directory if nonexistent
+if not exist %BACKUP_DIR% mkdir %BACKUP_DIR%
+
+:: Timestamped file format (YYYYMMDD_HHMM)
+for /f "tokens=2-4 delims=/ " %%a in ('date /t') do (set mydate=%%c%%a%%b)
+for /f "tokens=1-2 delims=: " %%a in ('time /t') do (set mytime=%%a%%b)
+SET BACKUP_FILE=%BACKUP_DIR%\backup_%mydate%_%mytime%.sql
+
+:: Execute Backup
+echo Generando respaldo en %BACKUP_FILE%...
+%PG_PATH%\pg_dump -U %DB_USER% -h localhost -d %DB_NAME% -F p -f %BACKUP_FILE%
+
+echo Respaldo completado.
+pause

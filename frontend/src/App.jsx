@@ -4,7 +4,6 @@ import { isAuthenticated, logoutUser } from "./api/authService";
 import { ThemeProvider, CssBaseline, Box } from "@mui/material";
 import Header from "./components/Header";
 import LandingPage from "./components/Landing/LandingPage";
-import LoginModal from "./components/Auth/LoginModal";
 import AppRouter from "./components/AppRouter";
 import SearchLimitDialog from "./components/Common/Feedback/SearchLimitDialog";
 import { darkTheme } from "./Themes/Theme.jsx";
@@ -88,7 +87,6 @@ function App() {
   };
 
   const handleLoginSuccess = () => {
-    setIsLoginOpen(false);
     setIsLoggedIn(true);
     setShowLanding(false);
     setPage("search");
@@ -230,7 +228,10 @@ function App() {
       >
         {showLanding ? (
           <LandingPage
-            onStart={() => setIsLoginOpen(true)}
+            onStart={() => {
+              setShowLanding(false);
+              setPage("login");
+            }}
             onRegister={() => {
               setShowLanding(false);
               setPage("register");
@@ -253,7 +254,10 @@ function App() {
                 setShowLanding(false);
                 setPage("register");
               }}
-              onLoginClick={() => setIsLoginOpen(true)}
+              onLoginClick={() => {
+                setShowLanding(false);
+                setPage("login");
+              }}
               onLogout={handleLogout}
               isLoggedIn={isLoggedIn}
               user={currentUser}
@@ -311,6 +315,7 @@ function App() {
               onResetDashboard={() => setDashboardSelectedPlayer(null)}
               onSelectPlayerClinical={handleSelectPlayerClinical}
               onSelectPlayerPerformance={handleSelectPlayerPerformance}
+              onLoginSuccess={handleLoginSuccess}
               onResetSearch={() => {
                 setPlayer(null);
                 setClinicalReport(null);
@@ -322,11 +327,7 @@ function App() {
           </>
         )}
 
-        <LoginModal
-          open={isLoginOpen}
-          onClose={() => setIsLoginOpen(false)}
-          onSuccess={handleLoginSuccess}
-        />
+
 
         <SearchLimitDialog
           open={isLimitOpen}
@@ -334,7 +335,8 @@ function App() {
           onClose={() => setIsLimitOpen(false)}
           onLoginClick={() => {
             setIsLimitOpen(false);
-            setIsLoginOpen(true);
+            setShowLanding(false);
+            setPage("login");
           }}
           onRegisterClick={() => {
             setIsLimitOpen(false);

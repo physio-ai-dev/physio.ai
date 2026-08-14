@@ -7,7 +7,10 @@ import playerRoutes from "./routes/playerRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
-import { getPlayerStats, getPlayerPerformanceAIAnalysis } from "./controllers/dashboardController.js";
+import {
+  getPlayerStats,
+  getPlayerPerformanceAIAnalysis,
+} from "./controllers/dashboardController.js";
 import { authenticateToken } from "./middleware/authMiddleware.js";
 
 const app = express();
@@ -16,22 +19,17 @@ app.use(cors());
 app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 app.use(express.json());
 
-// ==========================================
-// SCRUM-89: Limitador de peticiones (Rate Limit)
-// ==========================================
 const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minuto
-  max: 10, // Máximo 10 peticiones por minuto por IP
+  windowMs: 1 * 60 * 1000,
+  max: 20,
   message: {
     ok: false,
     message: "Demasiadas peticiones. Por favor, intente de nuevo en un minuto.",
   },
 });
 
-// Aplica el límite a todas las rutas que empiezan con /api/
 app.use("/api/", apiLimiter);
 
-// Route de prueba de estado
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
@@ -39,7 +37,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Rutas principales
 app.use("/api/players", playerRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
@@ -48,14 +45,11 @@ app.use("/api/stripe", stripeRoutes);
 app.get("/api/stats", authenticateToken, getPlayerStats);
 app.post("/api/analysis", authenticateToken, getPlayerPerformanceAIAnalysis);
 
-// SCRUM-90 & 91: Manejador Global de Error
 app.use((err, req, res, next) => {
-  // Solo imprime la traza detallada en consola si estás en desarrollo
   if (process.env.NODE_ENV !== "production") {
     console.error("❌ Error interno:", err);
   }
 
-  // Respuesta limpia para el usuario sin exponer credenciales ni código interno
   res.status(err.status || 500).json({
     ok: false,
     message: err.message || "Ocurrió un error interno en el servidor.",

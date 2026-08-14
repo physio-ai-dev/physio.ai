@@ -309,7 +309,7 @@ export const initializeDatabaseAddons = async () => {
       DO $$
       BEGIN
           IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'physiodb_user') THEN
-              CREATE ROLE physiodb_user WITH LOGIN PASSWORD 'physiodb_pass';
+              CREATE ROLE physiodb_user WITH LOGIN PASSWORD '${process.env.PHYSIODB_PASSWORD || "physiodb_pass"}';
           END IF;
       END
       $$;

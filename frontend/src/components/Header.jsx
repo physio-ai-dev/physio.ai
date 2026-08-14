@@ -13,7 +13,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
-  Divider
+  Divider,
 } from "@mui/material";
 import {
   MedicalServices as MedicalServicesIcon,
@@ -23,7 +23,7 @@ import {
   Dashboard as DashboardIcon,
   Paid as PaidIcon,
   BarChart as BarChartIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
 } from "@mui/icons-material";
 
 export default function Header({
@@ -133,32 +133,58 @@ export default function Header({
                     sx={{
                       width: 32,
                       height: 32,
-                      bgcolor: user?.subscription_tier === "premium" ? "#f59e0b" : "#6b7280",
+                      bgcolor:
+                        user?.subscription_tier === "premium"
+                          ? "#f59e0b"
+                          : "#6b7280",
                       fontSize: "0.95rem",
                       fontWeight: 800,
                     }}
                   >
                     {user?.username ? user.username[0].toUpperCase() : "U"}
                   </Avatar>
-                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                    }}
+                  >
                     <Typography variant="body2" sx={{ fontWeight: 800 }}>
                       {user?.username || "Usuario"}
                     </Typography>
                     <Chip
-                      label={user?.subscription_tier === "premium" ? "PRO" : "Gratuito"}
+                      label={
+                        user?.subscription_tier === "premium"
+                          ? "PRO"
+                          : "Gratuito"
+                      }
                       size="small"
                       sx={{
                         height: 16,
                         fontSize: "0.65rem",
                         fontWeight: 800,
-                        bgcolor: user?.subscription_tier === "premium" ? "rgba(245, 158, 11, 0.1)" : "rgba(255, 255, 255, 0.05)",
-                        color: user?.subscription_tier === "premium" ? "#fbbf24" : "text.secondary",
-                        border: user?.subscription_tier === "premium" ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid rgba(255, 255, 255, 0.05)",
+                        bgcolor:
+                          user?.subscription_tier === "premium"
+                            ? "rgba(245, 158, 11, 0.1)"
+                            : "rgba(255, 255, 255, 0.05)",
+                        color:
+                          user?.subscription_tier === "premium"
+                            ? "#fbbf24"
+                            : "text.secondary",
+                        border:
+                          user?.subscription_tier === "premium"
+                            ? "1px solid rgba(245, 158, 11, 0.3)"
+                            : "1px solid rgba(255, 255, 255, 0.05)",
                       }}
                     />
                   </Box>
                 </Box>
-                <IconButton onClick={onLogout} size="small" sx={{ color: "error.main" }}>
+                <IconButton
+                  onClick={onLogout}
+                  size="small"
+                  sx={{ color: "error.main" }}
+                >
                   <LogoutIcon fontSize="small" />
                 </IconButton>
               </Box>
@@ -206,9 +232,21 @@ export default function Header({
           },
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mb: 1.5, mt: 2.5, ml: 1.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 0.5,
+            mb: 1.5,
+            mt: 2.5,
+            ml: 1.5,
+          }}
+        >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <MedicalServicesIcon color="primary" sx={{ fontSize: 26, filter: "drop-shadow(0 0 6px #10b98160)" }} />
+            <MedicalServicesIcon
+              color="primary"
+              sx={{ fontSize: 26, filter: "drop-shadow(0 0 6px #10b98160)" }}
+            />
             <Typography
               variant="h6"
               sx={{
@@ -216,13 +254,20 @@ export default function Header({
                 letterSpacing: 1,
                 background: "linear-gradient(90deg, #10b981, #34d399)",
                 WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent"
+                WebkitTextFillColor: "transparent",
               }}
             >
               Navegación
             </Typography>
           </Box>
-          <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, letterSpacing: 0.5 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: "text.secondary",
+              fontWeight: 600,
+              letterSpacing: 0.5,
+            }}
+          >
             Physio.AI Control Panel
           </Typography>
         </Box>
@@ -230,7 +275,9 @@ export default function Header({
         <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.06)", my: 2 }} />
 
         <Box sx={{ flexGrow: 1 }}>
-          <List sx={{ display: "flex", flexDirection: "column", gap: 2, px: 1.5 }}>
+          <List
+            sx={{ display: "flex", flexDirection: "column", gap: 2, px: 1.5 }}
+          >
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => handleNavigation(onSearchClick)}
@@ -243,8 +290,8 @@ export default function Header({
                   "&:hover": {
                     bgcolor: "rgba(16, 185, 129, 0.06)",
                     borderColor: "rgba(16, 185, 129, 0.2)",
-                    transform: "translateX(4px)"
-                  }
+                    transform: "translateX(4px)",
+                  },
                 }}
               >
                 <Box
@@ -257,14 +304,18 @@ export default function Header({
                     borderRadius: 2.5,
                     bgcolor: "rgba(16, 185, 129, 0.08)",
                     color: "#10b981",
-                    mr: 2
+                    mr: 2,
                   }}
                 >
                   <SearchIcon fontSize="small" />
                 </Box>
                 <ListItemText
                   primary="Buscador Clínico"
-                  primaryTypographyProps={{ fontWeight: 800, fontSize: "0.95rem", color: "text.primary" }}
+                  primaryTypographyProps={{
+                    fontWeight: 800,
+                    fontSize: "0.95rem",
+                    color: "text.primary",
+                  }}
                 />
               </ListItemButton>
             </ListItem>
@@ -283,8 +334,8 @@ export default function Header({
                       "&:hover": {
                         bgcolor: "rgba(59, 130, 246, 0.06)",
                         borderColor: "rgba(59, 130, 246, 0.2)",
-                        transform: "translateX(4px)"
-                      }
+                        transform: "translateX(4px)",
+                      },
                     }}
                   >
                     <Box
@@ -297,14 +348,18 @@ export default function Header({
                         borderRadius: 2.5,
                         bgcolor: "rgba(59, 130, 246, 0.08)",
                         color: "#3b82f6",
-                        mr: 2
+                        mr: 2,
                       }}
                     >
                       <DashboardIcon fontSize="small" />
                     </Box>
                     <ListItemText
                       primary="Dashboard Rendimiento"
-                      primaryTypographyProps={{ fontWeight: 800, fontSize: "0.95rem", color: "text.primary" }}
+                      primaryTypographyProps={{
+                        fontWeight: 800,
+                        fontSize: "0.95rem",
+                        color: "text.primary",
+                      }}
                     />
                   </ListItemButton>
                 </ListItem>
@@ -321,8 +376,8 @@ export default function Header({
                       "&:hover": {
                         bgcolor: "rgba(245, 158, 11, 0.06)",
                         borderColor: "rgba(245, 158, 11, 0.2)",
-                        transform: "translateX(4px)"
-                      }
+                        transform: "translateX(4px)",
+                      },
                     }}
                   >
                     <Box
@@ -335,14 +390,18 @@ export default function Header({
                         borderRadius: 2.5,
                         bgcolor: "rgba(245, 158, 11, 0.08)",
                         color: "#f59e0b",
-                        mr: 2
+                        mr: 2,
                       }}
                     >
                       <BarChartIcon fontSize="small" />
                     </Box>
                     <ListItemText
                       primary="Top Buscados"
-                      primaryTypographyProps={{ fontWeight: 800, fontSize: "0.95rem", color: "text.primary" }}
+                      primaryTypographyProps={{
+                        fontWeight: 800,
+                        fontSize: "0.95rem",
+                        color: "text.primary",
+                      }}
                     />
                   </ListItemButton>
                 </ListItem>
@@ -362,8 +421,8 @@ export default function Header({
                     "&:hover": {
                       bgcolor: "rgba(167, 139, 250, 0.06)",
                       borderColor: "rgba(167, 139, 250, 0.2)",
-                      transform: "translateX(4px)"
-                    }
+                      transform: "translateX(4px)",
+                    },
                   }}
                 >
                   <Box
@@ -376,14 +435,18 @@ export default function Header({
                       borderRadius: 2.5,
                       bgcolor: "rgba(167, 139, 250, 0.08)",
                       color: "#a78bfa",
-                      mr: 2
+                      mr: 2,
                     }}
                   >
                     <PaidIcon fontSize="small" />
                   </Box>
                   <ListItemText
                     primary="Planes de Precios"
-                    primaryTypographyProps={{ fontWeight: 800, fontSize: "0.95rem", color: "text.primary" }}
+                    primaryTypographyProps={{
+                      fontWeight: 800,
+                      fontSize: "0.95rem",
+                      color: "text.primary",
+                    }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -408,8 +471,8 @@ export default function Header({
                     "&:hover": {
                       bgcolor: "rgba(16, 185, 129, 0.08)",
                       borderColor: "rgba(16, 185, 129, 0.3)",
-                      transform: "translateY(-2px)"
-                    }
+                      transform: "translateY(-2px)",
+                    },
                   }}
                 >
                   <Box
@@ -422,13 +485,13 @@ export default function Header({
                       borderRadius: 2.5,
                       bgcolor: "rgba(16, 185, 129, 0.1)",
                       color: "#10b981",
-                      mr: 2
+                      mr: 2,
                     }}
                   >
                     <HistoryIcon fontSize="small" />
                   </Box>
                   <ListItemText
-                    primary="Historial Búsquedas"
+                    primary="Historial"
                     primaryTypographyProps={{
                       fontWeight: 900,
                       fontSize: "0.95rem",
