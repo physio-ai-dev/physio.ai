@@ -218,4 +218,15 @@ export const api = {
     }
     return response.json();
   },
+
+  getAdminMetrics: async () => {
+    const response = await fetch(`${BASE_URL}/admin/metrics`, {
+      headers: getHeaders(),
+    });
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || "Error al obtener las métricas administrativas.");
+    }
+    return response.json();
+  },
 };

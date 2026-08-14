@@ -115,6 +115,7 @@ export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayer
                     />
                     <YAxis allowDecimals={false} tick={{ fill: "rgba(255, 255, 255, 0.5)", fontSize: 10 }} />
                     <Tooltip
+                      cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
                       contentStyle={{
                         backgroundColor: "rgba(11, 21, 40, 0.95)",
                         borderColor: "rgba(255, 255, 255, 0.08)",
@@ -167,6 +168,7 @@ export default function TopSearchedPage({ onSelectPlayerClinical, onSelectPlayer
                     />
                     <YAxis allowDecimals={false} tick={{ fill: "rgba(255, 255, 255, 0.5)", fontSize: 10 }} />
                     <Tooltip
+                      cursor={{ fill: "rgba(255, 255, 255, 0.03)" }}
                       contentStyle={{
                         backgroundColor: "rgba(11, 21, 40, 0.95)",
                         borderColor: "rgba(255, 255, 255, 0.08)",

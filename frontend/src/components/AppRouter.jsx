@@ -10,6 +10,7 @@ import DashboardPanel from "./Dashboard/DashboardPanel";
 import SearchHistoryPage from "./History/SearchHistoryPage";
 import LoginPage from "./Auth/LoginPage";
 import TopSearchedPage from "./Reports/TopSearchedPage";
+import AdminDashboard from "./Admin/AdminDashboard";
 
 export default function AppRouter({
   page,
@@ -38,9 +39,10 @@ export default function AppRouter({
   onResetSearch,
   onBackToMatches,
   onLoginSuccess,
+  isAdmin,
 }) {
   const containerMaxWidth =
-    page === "dashboard" || page === "top-searched" || page === "history"
+    page === "dashboard" || page === "top-searched" || page === "history" || page === "admin-dashboard"
       ? "lg"
       : "md";
 
@@ -71,6 +73,8 @@ export default function AppRouter({
           initialPlayer={dashboardSelectedPlayer}
           onResetPlayer={onResetDashboard}
         />
+      ) : page === "admin-dashboard" ? (
+        <AdminDashboard />
       ) : page === "top-searched" ? (
         <TopSearchedPage
           onSelectPlayerClinical={onSelectPlayerClinical}
@@ -80,6 +84,7 @@ export default function AppRouter({
         <SearchHistoryPage
           onSelectPlayerClinical={onSelectPlayerClinical}
           onSelectPlayerPerformance={onSelectPlayerPerformance}
+          isAdmin={isAdmin}
         />
       ) : clinicalReport ? (
         <ResultPanel

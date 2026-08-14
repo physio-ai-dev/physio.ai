@@ -283,6 +283,10 @@ function App() {
                 setShowLanding(false);
                 setPage("history");
               }}
+              onAdminDashboardClick={() => {
+                setShowLanding(false);
+                setPage("admin-dashboard");
+              }}
             />
 
             <AppRouter
@@ -307,6 +311,7 @@ function App() {
                 if (!isLoggedIn) setShowLanding(true);
                 setPage("search");
               }}
+              isAdmin={currentUser?.role === "admin"}
               onRegisterSuccess={() => setPage("search")}
               onGoBackFromPricing={() => {
                 if (!isLoggedIn) setShowLanding(true);
