@@ -7,6 +7,7 @@ import playerRoutes from "./routes/playerRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import stripeRoutes from "./routes/stripeRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import {
   getPlayerStats,
   getPlayerPerformanceAIAnalysis,
@@ -41,6 +42,7 @@ app.use("/api/players", playerRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stripe", stripeRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/stats", authenticateToken, getPlayerStats);
 app.post("/api/analysis", authenticateToken, getPlayerPerformanceAIAnalysis);

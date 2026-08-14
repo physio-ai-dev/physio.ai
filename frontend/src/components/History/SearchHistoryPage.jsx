@@ -23,7 +23,7 @@ import ErrorAlert from "../Common/Feedback/ErrorAlert";
 import GlassCard from "../Common/Layout/GlassCard";
 import PageTitle from "../Common/Typography/PageTitle";
 
-export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlayerPerformance }) {
+export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlayerPerformance, isAdmin }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [history, setHistory] = useState([]);
@@ -89,6 +89,7 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
                 <TableRow>
                   <TableCell sx={{ fontWeight: 800 }}>Futbolista</TableCell>
                   <TableCell sx={{ fontWeight: 800 }}>Club / Equipo</TableCell>
+                  {isAdmin && <TableCell sx={{ fontWeight: 800 }}>Usuario</TableCell>}
                   <TableCell sx={{ fontWeight: 800 }}>Tipo de Búsqueda</TableCell>
                   <TableCell sx={{ fontWeight: 800 }}>Fecha / Hora</TableCell>
                   <TableCell align="center" sx={{ fontWeight: 800 }}>Cargar</TableCell>
@@ -107,6 +108,11 @@ export default function SearchHistoryPage({ onSelectPlayerClinical, onSelectPlay
                     <TableCell sx={{ color: "text.secondary", fontWeight: 500 }}>
                       {item.equipo || "Sin equipo"}
                     </TableCell>
+                    {isAdmin && (
+                      <TableCell sx={{ color: "text.secondary", fontSize: "0.85rem", fontWeight: 700 }}>
+                        {item.usuario_email}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Chip
                         icon={item.tipo_buscador === "clinico" ? <MedicalServicesIcon sx={{ fontSize: "0.9rem !important" }} /> : <DashboardIcon sx={{ fontSize: "0.9rem !important" }} />}

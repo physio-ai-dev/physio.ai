@@ -560,10 +560,19 @@ export const getSearchHistory = async (req, res) => {
       return res.status(400).json({ error: "Email de usuario no especificado." });
     }
 
-    const history = await AppDataSource.query(
-      "SELECT * FROM view_search_history WHERE user_email = $1 ORDER BY search_date DESC LIMIT 50;",
-      [userEmail]
-    );
+    const isAdmin = req.user?.role === "admin";
+    let history;
+
+    if (isAdmin) {
+      history = await AppDataSource.query(
+        "SELECT * FROM view_search_history ORDER BY search_date DESC LIMIT 100;"
+      );
+    } else {
+      history = await AppDataSource.query(
+        "SELECT * FROM view_search_history WHERE user_email = $1 ORDER BY search_date DESC LIMIT 50;",
+        [userEmail]
+      );
+    }
 
     return res.json({
       status: "success",

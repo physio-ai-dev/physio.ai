@@ -24,6 +24,7 @@ import {
   Paid as PaidIcon,
   BarChart as BarChartIcon,
   History as HistoryIcon,
+  Analytics as AnalyticsIcon,
 } from "@mui/icons-material";
 
 export default function Header({
@@ -38,6 +39,7 @@ export default function Header({
   onDashboardClick,
   onTopSearchedClick,
   onHistoryClick,
+  onAdminDashboardClick,
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -155,7 +157,9 @@ export default function Header({
                     </Typography>
                     <Chip
                       label={
-                        user?.subscription_tier === "premium"
+                        user?.role === "admin"
+                          ? "ADMIN"
+                          : user?.subscription_tier === "premium"
                           ? "PRO"
                           : "Gratuito"
                       }
@@ -165,15 +169,21 @@ export default function Header({
                         fontSize: "0.65rem",
                         fontWeight: 800,
                         bgcolor:
-                          user?.subscription_tier === "premium"
+                          user?.role === "admin"
+                            ? "rgba(244, 63, 94, 0.1)"
+                            : user?.subscription_tier === "premium"
                             ? "rgba(245, 158, 11, 0.1)"
                             : "rgba(255, 255, 255, 0.05)",
                         color:
-                          user?.subscription_tier === "premium"
+                          user?.role === "admin"
+                            ? "#fb7185"
+                            : user?.subscription_tier === "premium"
                             ? "#fbbf24"
                             : "text.secondary",
                         border:
-                          user?.subscription_tier === "premium"
+                          user?.role === "admin"
+                            ? "1px solid rgba(244, 63, 94, 0.3)"
+                            : user?.subscription_tier === "premium"
                             ? "1px solid rgba(245, 158, 11, 0.3)"
                             : "1px solid rgba(255, 255, 255, 0.05)",
                       }}
@@ -405,6 +415,50 @@ export default function Header({
                     />
                   </ListItemButton>
                 </ListItem>
+
+                {user?.role === "admin" && (
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={() => handleNavigation(onAdminDashboardClick)}
+                      sx={{
+                        borderRadius: 3.5,
+                        px: 2,
+                        py: 1.2,
+                        border: "1px solid rgba(255, 255, 255, 0.02)",
+                        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                        "&:hover": {
+                          bgcolor: "rgba(244, 63, 94, 0.06)",
+                          borderColor: "rgba(244, 63, 94, 0.2)",
+                          transform: "translateX(4px)",
+                        },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 36,
+                          height: 36,
+                          borderRadius: 2.5,
+                          bgcolor: "rgba(244, 63, 94, 0.08)",
+                          color: "#fb7185",
+                          mr: 2,
+                        }}
+                      >
+                        <AnalyticsIcon fontSize="small" />
+                      </Box>
+                      <ListItemText
+                        primary="Panel Analítico"
+                        primaryTypographyProps={{
+                          fontWeight: 800,
+                          fontSize: "0.95rem",
+                          color: "text.primary",
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                )}
               </>
             )}
 
@@ -454,7 +508,7 @@ export default function Header({
           </List>
         </Box>
 
-        {isLoggedIn && user?.subscription_tier === "premium" && (
+        {isLoggedIn && (user?.subscription_tier === "premium" || user?.role === "admin") && (
           <Box sx={{ mt: "auto", pt: 2 }}>
             <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.06)", mb: 2 }} />
             <List sx={{ display: "flex", flexDirection: "column", px: 1.5 }}>
