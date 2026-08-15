@@ -14,8 +14,19 @@ Asegúrate de contar con el siguiente software instalado con sus versiones recom
 
 ### Dependencias Principales
 
-- **Backend**: Express `^5.2.1`, TypeORM `^0.3.20`, PostgreSQL Driver (`pg`) `^8.11.3`, `@google/genai` `^2.13.0`, Stripe `^22.5.0`, JWT `^9.0.3`, bcryptjs `^2.4.3`.
-- **Frontend**: React `^19.2.7`, Material-UI (MUI) `^9.2.0`, Recharts `^3.10.1`, Vite `^8.1.1`.
+**Backend**:
+- Express `^5.2.1`
+- TypeORM `^0.3.20`
+- PostgreSQL Driver (`pg`) `^8.11.3`
+- `@google/genai` `^2.13.0`
+- Stripe `^22.5.0`, JWT `^9.0.3`
+- bcryptjs `^2.4.3`
+
+**Frontend**:
+- React `^19.2.7`
+- Material-UI (MUI) `^9.2.0`
+- Recharts `^3.10.1`
+- Vite `^8.1.1`
 
 ---
 
