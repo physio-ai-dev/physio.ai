@@ -1,10 +1,10 @@
 @echo off
 :: Variables
-SET PG_PATH="C:\Program Files\PostgreSQL\16\bin"
+SET PG_PATH="C:\Program Files\PostgreSQL\18\bin"
 SET DB_NAME=physiodb
 SET DB_USER=physiodb_user
 SET PGPASSWORD=env_password
-SET BACKUP_DIR=C:\Users\rafae\Desktop\physio.ai\backups
+SET BACKUP_DIR=C:\Users\user\Desktop\physio.ai\backups
 
 :: Create directory if nonexistent
 if not exist %BACKUP_DIR% mkdir %BACKUP_DIR%

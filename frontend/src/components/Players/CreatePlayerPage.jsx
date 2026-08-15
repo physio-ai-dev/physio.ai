@@ -126,7 +126,15 @@ export default function CreatePlayerPage({ onGoBack }) {
     setError(null);
     setSuccess(null);
 
-    const { nombre, equipo, posicion, estatura, valor_mercado, liga, fecha_nacimiento } = formData;
+    const {
+      nombre,
+      equipo,
+      posicion,
+      estatura,
+      valor_mercado,
+      liga,
+      fecha_nacimiento,
+    } = formData;
     if (
       !nombre.trim() ||
       !equipo.trim() ||
@@ -152,7 +160,7 @@ export default function CreatePlayerPage({ onGoBack }) {
 
       if (response && response.status === "success") {
         setSuccess(
-          `¡Jugador "${response.data.name || response.data.nombre}" registrado localmente con éxito! Ya puedes buscarlo por su nombre.`
+          `¡Jugador "${response.data.name || response.data.nombre}" registrado localmente con éxito! Ya puedes buscarlo por su nombre.`,
         );
         setFormData({
           nombre: "",
@@ -201,7 +209,7 @@ export default function CreatePlayerPage({ onGoBack }) {
               borderColor: "rgba(255, 255, 255, 0.08)",
               bgcolor: "rgba(255, 255, 255, 0.02)",
               boxShadow: "none",
-            }
+            },
           }}
         >
           Volver al Buscador
@@ -224,7 +232,11 @@ export default function CreatePlayerPage({ onGoBack }) {
           {/* Alertas */}
           <ErrorAlert message={error} sx={{ mb: 5 }} />
           {success && (
-            <Alert severity="success" variant="outlined" sx={{ mb: 5, borderRadius: 3 }}>
+            <Alert
+              severity="success"
+              variant="outlined"
+              sx={{ mb: 5, borderRadius: 3 }}
+            >
               {success}
             </Alert>
           )}
@@ -248,22 +260,28 @@ export default function CreatePlayerPage({ onGoBack }) {
                     >
                       Datos Personales
                     </Typography>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", gap: 4 }}
+                    >
                       <TextField
                         fullWidth
                         label="Nombre Completo *"
                         name="nombre"
-                        placeholder="Ej. Cristiano Ronaldo"
+                        placeholder="Ej. Leo Messi"
                         value={formData.nombre}
                         onChange={handleChange}
                         disabled={loading}
                         slotProps={{
                           input: {
-                            startAdornment: <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
-                          }
+                            startAdornment: (
+                              <PersonIcon
+                                sx={{ color: "text.secondary", mr: 1.5 }}
+                              />
+                            ),
+                          },
                         }}
                       />
-                      
+
                       {/* Componente de Calendario Nativo */}
                       <TextField
                         fullWidth
@@ -276,8 +294,12 @@ export default function CreatePlayerPage({ onGoBack }) {
                         disabled={loading}
                         slotProps={{
                           input: {
-                            startAdornment: <CalendarIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
-                          }
+                            startAdornment: (
+                              <CalendarIcon
+                                sx={{ color: "text.secondary", mr: 1.5 }}
+                              />
+                            ),
+                          },
                         }}
                       />
 
@@ -294,9 +316,15 @@ export default function CreatePlayerPage({ onGoBack }) {
                         inputProps={{ min: 50, max: 250 }}
                         slotProps={{
                           input: {
-                            startAdornment: <RulerIcon sx={{ color: "text.secondary", mr: 1.5 }} />,
-                            endAdornment: <InputAdornment position="end">cm</InputAdornment>,
-                          }
+                            startAdornment: (
+                              <RulerIcon
+                                sx={{ color: "text.secondary", mr: 1.5 }}
+                              />
+                            ),
+                            endAdornment: (
+                              <InputAdornment position="end">cm</InputAdornment>
+                            ),
+                          },
                         }}
                       />
                     </Box>
@@ -316,10 +344,14 @@ export default function CreatePlayerPage({ onGoBack }) {
                     >
                       Datos Deportivos
                     </Typography>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      
+                    <Box
+                      sx={{ display: "flex", flexDirection: "column", gap: 4 }}
+                    >
                       {/* Select Dropdown para Ligas */}
-                      <FormControl fullWidth disabled={loading || loadingLeagues}>
+                      <FormControl
+                        fullWidth
+                        disabled={loading || loadingLeagues}
+                      >
                         <InputLabel id="liga-label">Liga *</InputLabel>
                         <Select
                           labelId="liga-label"
@@ -330,12 +362,14 @@ export default function CreatePlayerPage({ onGoBack }) {
                         >
                           {loadingLeagues ? (
                             <MenuItem value="">
-                              <CircularProgress size={16} sx={{ mr: 1 }} /> Cargando ligas...
+                              <CircularProgress size={16} sx={{ mr: 1 }} />{" "}
+                              Cargando ligas...
                             </MenuItem>
                           ) : (
                             leagues.map((league) => (
                               <MenuItem key={league.id} value={league.name}>
-                                {league.name} {league.country ? `(${league.country})` : ""}
+                                {league.name}{" "}
+                                {league.country ? `(${league.country})` : ""}
                               </MenuItem>
                             ))
                           )}
@@ -343,7 +377,10 @@ export default function CreatePlayerPage({ onGoBack }) {
                       </FormControl>
 
                       {/* Select Dropdown para Clubes (Filtrados por la Liga seleccionada) */}
-                      <FormControl fullWidth disabled={loading || loadingClubs || loadingLeagues}>
+                      <FormControl
+                        fullWidth
+                        disabled={loading || loadingClubs || loadingLeagues}
+                      >
                         <InputLabel id="club-label">Equipo / Club *</InputLabel>
                         <Select
                           labelId="club-label"
@@ -354,7 +391,8 @@ export default function CreatePlayerPage({ onGoBack }) {
                         >
                           {loadingClubs ? (
                             <MenuItem value="">
-                              <CircularProgress size={16} sx={{ mr: 1 }} /> Cargando clubes...
+                              <CircularProgress size={16} sx={{ mr: 1 }} />{" "}
+                              Cargando clubes...
                             </MenuItem>
                           ) : clubs.length === 0 ? (
                             <MenuItem value="">
@@ -371,7 +409,10 @@ export default function CreatePlayerPage({ onGoBack }) {
                       </FormControl>
 
                       {/* Select Dropdown para Posiciones */}
-                      <FormControl fullWidth disabled={loading || loadingPositions}>
+                      <FormControl
+                        fullWidth
+                        disabled={loading || loadingPositions}
+                      >
                         <InputLabel id="posicion-label">Posición *</InputLabel>
                         <Select
                           labelId="posicion-label"
@@ -382,7 +423,8 @@ export default function CreatePlayerPage({ onGoBack }) {
                         >
                           {loadingPositions ? (
                             <MenuItem value="">
-                              <CircularProgress size={16} sx={{ mr: 1 }} /> Cargando posiciones...
+                              <CircularProgress size={16} sx={{ mr: 1 }} />{" "}
+                              Cargando posiciones...
                             </MenuItem>
                           ) : (
                             positions.map((pos) => (
@@ -405,9 +447,17 @@ export default function CreatePlayerPage({ onGoBack }) {
                         disabled={loading}
                         slotProps={{
                           input: {
-                            startAdornment: <InputAdornment position="start">€</InputAdornment>,
-                            endAdornment: <InputAdornment position="end">EUR</InputAdornment>,
-                          }
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                €
+                              </InputAdornment>
+                            ),
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                EUR
+                              </InputAdornment>
+                            ),
+                          },
                         }}
                       />
                     </Box>
@@ -429,7 +479,7 @@ export default function CreatePlayerPage({ onGoBack }) {
                 >
                   Foto Perfil
                 </Typography>
-                
+
                 <Paper
                   variant="outlined"
                   sx={{
@@ -453,14 +503,33 @@ export default function CreatePlayerPage({ onGoBack }) {
                     },
                   }}
                 >
-                  <UploadIcon color="primary" sx={{ fontSize: 44, mb: 2, opacity: 0.8 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 700, mb: 1, color: "text.primary" }}>
+                  <UploadIcon
+                    color="primary"
+                    sx={{ fontSize: 44, mb: 2, opacity: 0.8 }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 700, mb: 1, color: "text.primary" }}
+                  >
                     Cargar Imagen del Jugador
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", px: 2, lineHeight: 1.4 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", px: 2, lineHeight: 1.4 }}
+                  >
                     Arrastra una imagen aquí o haz clic para examinar archivos.
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5, fontSize: "0.7rem", opacity: 0.6 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      display: "block",
+                      mt: 1.5,
+                      fontSize: "0.7rem",
+                      opacity: 0.6,
+                    }}
+                  >
                     Soporta PNG, JPG o JPEG (Máx. 5MB)
                   </Typography>
                 </Paper>
@@ -486,14 +555,16 @@ export default function CreatePlayerPage({ onGoBack }) {
                     borderColor: "rgba(255, 255, 255, 0.2)",
                     bgcolor: "rgba(255, 255, 255, 0.02)",
                     boxShadow: "none",
-                  }
+                  },
                 }}
               >
                 Cancelar
               </ActionButton>
               <ActionButton
                 type="submit"
-                disabled={loading || loadingLeagues || loadingPositions || loadingClubs}
+                disabled={
+                  loading || loadingLeagues || loadingPositions || loadingClubs
+                }
                 sx={{ px: 6, py: 1.2 }}
               >
                 {loading ? (

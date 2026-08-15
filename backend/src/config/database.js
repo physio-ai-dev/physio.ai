@@ -54,8 +54,8 @@ export const initializeDatabaseAddons = async () => {
           table_name VARCHAR(100) NOT NULL,
           operation VARCHAR(20) NOT NULL,
           record_id INTEGER NOT NULL,
-          valor_anterior JSONB,
-          valor_nuevo JSONB,
+          old_value JSONB,
+          new_value JSONB,
           user_email VARCHAR(100) DEFAULT CURRENT_USER,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -248,15 +248,15 @@ export const initializeDatabaseAddons = async () => {
       RETURNS TRIGGER AS $$
       BEGIN
           IF (TG_OP = 'INSERT') THEN
-              INSERT INTO audit_logs (table_name, operation, record_id, valor_anterior, valor_nuevo)
+              INSERT INTO audit_logs (table_name, operation, record_id, old_value, new_value)
               VALUES (TG_TABLE_NAME, TG_OP, NEW.id, NULL, to_jsonb(NEW));
               RETURN NEW;
           ELSIF (TG_OP = 'UPDATE') THEN
-              INSERT INTO audit_logs (table_name, operation, record_id, valor_anterior, valor_nuevo)
+              INSERT INTO audit_logs (table_name, operation, record_id, old_value, new_value)
               VALUES (TG_TABLE_NAME, TG_OP, NEW.id, to_jsonb(OLD), to_jsonb(NEW));
               RETURN NEW;
           ELSIF (TG_OP = 'DELETE') THEN
-              INSERT INTO audit_logs (table_name, operation, record_id, valor_anterior, valor_nuevo)
+              INSERT INTO audit_logs (table_name, operation, record_id, old_value, new_value)
               VALUES (TG_TABLE_NAME, TG_OP, OLD.id, to_jsonb(OLD), NULL);
               RETURN OLD;
           END IF;

@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import UserSchema from "../models/UserSchema.js";
+import AppDataSource from "../config/database.js";
 
 export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -20,13 +22,19 @@ export const authenticateToken = (req, res, next) => {
 };
 
 export const requireRole = (allowedRoles) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: "Usuario no autenticado." });
     }
 
-    const hasRole = allowedRoles.includes(req.user.role);
-    const hasPremium = allowedRoles.includes("premium") && req.user.subscription_tier === "premium";
+    const userRepository = AppDataSource.getRepository(UserSchema);
+    const dbUser = await userRepository.findOne({ where: { id: req.user.id } });
+
+    const roleToCheck = dbUser ? dbUser.role : req.user.role;
+    const tierToCheck = dbUser ? dbUser.subscription_tier : req.user.subscription_tier;
+
+    const hasRole = allowedRoles.includes(roleToCheck);
+    const hasPremium = allowedRoles.includes("premium") && tierToCheck === "premium";
 
     if (hasRole || hasPremium) {
       return next();

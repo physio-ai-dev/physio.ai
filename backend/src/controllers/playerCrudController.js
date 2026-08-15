@@ -401,12 +401,13 @@ export const getAuditLogs = async (req, res) => {
       status: "success",
       data: logs.map((l) => ({
         id: l.id,
-        tabla_nombre: l.table_name,
-        operacion: l.operation,
-        registro_id: l.record_id,
-        campos_modificados: l.modified_fields,
-        usuario: l.user_email,
-        fecha_evento: l.created_at,
+        tableName: l.table_name,
+        operation: l.operation,
+        recordId: l.record_id,
+        oldValue: l.old_value,
+        newValue: l.new_value,
+        userEmail: l.user_email,
+        createdAt: l.created_at,
       })),
     });
   } catch (error) {

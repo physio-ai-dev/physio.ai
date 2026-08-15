@@ -16,6 +16,9 @@ router.post("/create-checkout-session", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "Usuario no encontrado." });
     }
 
+    user.subscription_tier = "premium";
+    await userRepository.save(user);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "subscription",

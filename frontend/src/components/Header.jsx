@@ -332,89 +332,93 @@ export default function Header({
 
             {isLoggedIn && (
               <>
-                <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => handleNavigation(onDashboardClick)}
-                    sx={{
-                      borderRadius: 3.5,
-                      px: 2,
-                      py: 1.2,
-                      border: "1px solid rgba(255, 255, 255, 0.02)",
-                      transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                      "&:hover": {
-                        bgcolor: "rgba(59, 130, 246, 0.06)",
-                        borderColor: "rgba(59, 130, 246, 0.2)",
-                        transform: "translateX(4px)",
-                      },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: 2.5,
-                        bgcolor: "rgba(59, 130, 246, 0.08)",
-                        color: "#3b82f6",
-                        mr: 2,
-                      }}
-                    >
-                      <DashboardIcon fontSize="small" />
-                    </Box>
-                    <ListItemText
-                      primary="Dashboard Rendimiento"
-                      primaryTypographyProps={{
-                        fontWeight: 800,
-                        fontSize: "0.95rem",
-                        color: "text.primary",
-                      }}
-                    />
-                  </ListItemButton>
-                </ListItem>
+                {(user?.subscription_tier === "premium" || user?.role === "admin") && (
+                  <>
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        onClick={() => handleNavigation(onDashboardClick)}
+                        sx={{
+                          borderRadius: 3.5,
+                          px: 2,
+                          py: 1.2,
+                          border: "1px solid rgba(255, 255, 255, 0.02)",
+                          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                          "&:hover": {
+                            bgcolor: "rgba(59, 130, 246, 0.06)",
+                            borderColor: "rgba(59, 130, 246, 0.2)",
+                            transform: "translateX(4px)",
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 36,
+                            height: 36,
+                            borderRadius: 2.5,
+                            bgcolor: "rgba(59, 130, 246, 0.08)",
+                            color: "#3b82f6",
+                            mr: 2,
+                          }}
+                        >
+                          <DashboardIcon fontSize="small" />
+                        </Box>
+                        <ListItemText
+                          primary="Dashboard Rendimiento"
+                          primaryTypographyProps={{
+                            fontWeight: 800,
+                            fontSize: "0.95rem",
+                            color: "text.primary",
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
 
-                <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={() => handleNavigation(onTopSearchedClick)}
-                    sx={{
-                      borderRadius: 3.5,
-                      px: 2,
-                      py: 1.2,
-                      border: "1px solid rgba(255, 255, 255, 0.02)",
-                      transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                      "&:hover": {
-                        bgcolor: "rgba(245, 158, 11, 0.06)",
-                        borderColor: "rgba(245, 158, 11, 0.2)",
-                        transform: "translateX(4px)",
-                      },
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 36,
-                        height: 36,
-                        borderRadius: 2.5,
-                        bgcolor: "rgba(245, 158, 11, 0.08)",
-                        color: "#f59e0b",
-                        mr: 2,
-                      }}
-                    >
-                      <BarChartIcon fontSize="small" />
-                    </Box>
-                    <ListItemText
-                      primary="Top Buscados"
-                      primaryTypographyProps={{
-                        fontWeight: 800,
-                        fontSize: "0.95rem",
-                        color: "text.primary",
-                      }}
-                    />
-                  </ListItemButton>
-                </ListItem>
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        onClick={() => handleNavigation(onTopSearchedClick)}
+                        sx={{
+                          borderRadius: 3.5,
+                          px: 2,
+                          py: 1.2,
+                          border: "1px solid rgba(255, 255, 255, 0.02)",
+                          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                          "&:hover": {
+                            bgcolor: "rgba(245, 158, 11, 0.06)",
+                            borderColor: "rgba(245, 158, 11, 0.2)",
+                            transform: "translateX(4px)",
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: 36,
+                            height: 36,
+                            borderRadius: 2.5,
+                            bgcolor: "rgba(245, 158, 11, 0.08)",
+                            color: "#f59e0b",
+                            mr: 2,
+                          }}
+                        >
+                          <BarChartIcon fontSize="small" />
+                        </Box>
+                        <ListItemText
+                          primary="Top Buscados"
+                          primaryTypographyProps={{
+                            fontWeight: 800,
+                            fontSize: "0.95rem",
+                            color: "text.primary",
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  </>
+                )}
 
                 {user?.role === "admin" && (
                   <ListItem disablePadding>

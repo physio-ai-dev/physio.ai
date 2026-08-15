@@ -136,7 +136,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               borderColor: "rgba(255, 255, 255, 0.08)",
               bgcolor: "rgba(255, 255, 255, 0.02)",
               boxShadow: "none",
-            }
+            },
           }}
         >
           Volver
@@ -186,7 +186,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               fullWidth
               label="Nombre de Usuario *"
               name="username"
-              placeholder="Ej. cr7_fans"
+              placeholder="Ej. hustlehard_304"
               value={formData.username}
               onChange={handleChange}
               disabled={loading}
@@ -195,7 +195,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
                   startAdornment: (
                     <PersonIcon sx={{ color: "text.secondary", mr: 1.5 }} />
                   ),
-                }
+                },
               }}
             />
 
@@ -204,7 +204,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               fullWidth
               label="Correo Electrónico *"
               name="email"
-              placeholder="Ej. ronaldo@correo.com"
+              placeholder="Ej. nombre@correo.com"
               value={formData.email}
               onChange={handleChange}
               disabled={loading}
@@ -213,7 +213,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
                   startAdornment: (
                     <EmailIcon sx={{ color: "text.secondary", mr: 1.5 }} />
                   ),
-                }
+                },
               }}
             />
 
@@ -230,9 +230,11 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
               slotProps={{
                 input: {
                   startAdornment: (
-                    <CalendarMonthIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                    <CalendarMonthIcon
+                      sx={{ color: "text.secondary", mr: 1.5 }}
+                    />
                   ),
-                }
+                },
               }}
             />
 
@@ -251,7 +253,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
                   startAdornment: (
                     <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
                   ),
-                }
+                },
               }}
             />
 
@@ -270,7 +272,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
                   startAdornment: (
                     <LockIcon sx={{ color: "text.secondary", mr: 1.5 }} />
                   ),
-                }
+                },
               }}
             />
 
@@ -293,7 +295,7 @@ export default function RegisterPage({ onGoBack, onRegisterSuccess }) {
                     borderColor: "rgba(255, 255, 255, 0.2)",
                     bgcolor: "rgba(255, 255, 255, 0.02)",
                     boxShadow: "none",
-                  }
+                  },
                 }}
               >
                 Cancelar
